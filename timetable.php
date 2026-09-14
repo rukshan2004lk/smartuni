@@ -1,0 +1,659 @@
+<?php
+require_once "includes/connection.php";
+
+$pageTitle = "SmartUni Portal - Academic Timetable";
+$currentPage = "timetable";
+
+// Helper function to convert time string (HH:MM or HH:MM:SS) to total minutes from midnight
+function parseTimeToMinutes($timeStr) {
+    $timeStr = trim($timeStr);
+    if (empty($timeStr)) return 0;
+    $parts = explode(':', $timeStr);
+    $h = intval($parts[0] ?? 0);
+    $m = intval($parts[1] ?? 0);
+    return ($h * 60) + $m;
+}
+
+// Fetch active entries from database table `timetable`
+$all_entries = [];
+$timetable_rs = Database::search("SELECT * FROM `timetable`");
+if ($timetable_rs) {
+    while ($row = $timetable_rs->fetch_assoc()) {
+        $dayKey = strtolower($row['day_of_week']);
+        if (str_contains($dayKey, 'mon')) $dayKey = 'mon';
+        else if (str_contains($dayKey, 'tue')) $dayKey = 'tue';
+        else if (str_contains($dayKey, 'wed')) $dayKey = 'wed';
+        else if (str_contains($dayKey, 'thu')) $dayKey = 'thu';
+        else if (str_contains($dayKey, 'fri')) $dayKey = 'fri';
+
+        $row['start_min'] = parseTimeToMinutes($row['start_time']);
+        $row['end_min']   = parseTimeToMinutes($row['end_time']);
+        $row['day_key']   = $dayKey;
+
+        $all_entries[] = $row;
+    }
+}
+
+// Render dynamic cell matching single or double lectures
+function renderSlotCell($dayKey, $slotStartStr, $slotEndStr) {
+    global $all_entries;
+
+    $slotStart = parseTimeToMinutes($slotStartStr);
+    $slotEnd   = parseTimeToMinutes($slotEndStr);
+
+    $matchingEntries = [];
+    foreach ($all_entries as $entry) {
+        if ($entry['day_key'] === $dayKey) {
+            // Overlap check: entry starts before slot ends AND entry ends after slot starts
+            if ($entry['start_min'] < $slotEnd && $entry['end_min'] > $slotStart) {
+                $matchingEntries[] = $entry;
+            }
+        }
+    }
+
+    if (!empty($matchingEntries)) {
+        $colors = ['tt-card-blue', 'tt-card-purple', 'tt-card-emerald', 'tt-card-amber', 'tt-card-rose'];
+        foreach ($matchingEntries as $entry) {
+            $cardColor = $colors[$entry['id'] % count($colors)];
+
+            $durationMinutes = $entry['end_min'] - $entry['start_min'];
+            $isDouble = ($durationMinutes > 75); // More than 1 hr 15 min (e.g. 2-hour double lecture)
+            $isContinuation = ($entry['start_min'] < $slotStart);
+
+            $jsonEntry = htmlspecialchars(json_encode($entry), ENT_QUOTES, 'UTF-8');
+
+            echo '<div class="timetable-card ' . $cardColor . ' mb-2" style="cursor: pointer;" onclick="event.stopPropagation(); openEditModal(' . $jsonEntry . ');" title="Click to Edit Entry">';
+            echo '  <div class="d-flex justify-content-between align-items-center mb-1">';
+            echo '    <span class="tt-code">' . htmlspecialchars($entry['course_code']) . '</span>';
+
+            if ($isDouble) {
+                if ($isContinuation) {
+                    echo '    <span class="badge bg-white text-dark p-1" style="font-size: 9px;"><i class="bi bi-arrow-right-circle me-1"></i>Double (Cont.)</span>';
+                } else {
+                    echo '    <span class="badge bg-warning text-dark fw-bold p-1" style="font-size: 9px;"><i class="bi bi-clock-history me-1"></i>Double Lecture</span>';
+                }
+            } else {
+                echo '    <span class="badge bg-white text-dark p-1" style="font-size: 9px;">Scheduled</span>';
+            }
+
+            echo '  </div>';
+            echo '  <div class="tt-title fw-bold">' . htmlspecialchars($entry['course_name']) . '</div>';
+            if (!empty($entry['lecturer_name'])) {
+                echo '  <div class="tt-meta"><i class="bi bi-person-fill"></i> ' . htmlspecialchars($entry['lecturer_name']) . '</div>';
+            }
+            echo '  <div class="tt-meta"><i class="bi bi-clock"></i> ' . htmlspecialchars($entry['start_time'] . ' - ' . $entry['end_time']) . '</div>';
+            echo '</div>';
+        }
+    }
+}
+
+$extraCss = '
+  <style>
+    .timetable-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+    }
+    .timetable-header {
+      background-color: #f8fafc;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--su-text-dark);
+      text-align: center;
+      padding: 12px;
+      border-radius: var(--su-radius-input);
+      border: 1px solid var(--su-border-color);
+    }
+    .timetable-time-col {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--su-text-muted);
+      text-align: center;
+      vertical-align: middle;
+      padding: 8px;
+      background-color: #ffffff;
+      border-radius: var(--su-radius-input);
+      border: 1px solid var(--su-border-color);
+      width: 100px;
+    }
+    .timetable-cell {
+      background-color: #ffffff;
+      border: 1px dashed var(--su-border-color);
+      border-radius: var(--su-radius-card);
+      min-height: 90px;
+      padding: 8px;
+      vertical-align: top;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .timetable-cell:hover {
+      border-color: #cbd5e1;
+      background-color: #f8fafc;
+    }
+    .timetable-card {
+      border-radius: 8px;
+      padding: 10px;
+      color: #ffffff;
+      font-size: 12px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    .timetable-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    .tt-card-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .tt-card-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .tt-card-emerald { background: linear-gradient(135deg, #10b981, #059669); }
+    .tt-card-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .tt-card-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+
+    .tt-code { font-weight: 700; font-size: 12.5px; letter-spacing: -0.2px; }
+    .tt-title { font-size: 11.5px; opacity: 0.95; margin-bottom: 4px; }
+    .tt-meta { font-size: 10.5px; opacity: 0.85; display: flex; align-items: center; gap: 4px; }
+  </style>
+';
+require_once "includes/header.php";
+?>
+
+        
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+          <div>
+           
+            <h1 class="fw-bold fs-3 mb-1">Academic Timetable</h1>
+            <p class="text-secondary small mb-0">View and manage your weekly lecture schedules, lab sessions, and academic commitments.</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-su-indigo d-inline-flex align-items-center gap-1" onclick="openAddModalForSlot('Monday', '08:30', '09:30');">
+              <i class="bi bi-plus-lg"></i> Add Timetable Entry
+            </button>
+        
+          </div>
+        </div>
+
+        <div class="table-responsive bg-white border rounded-4 p-3 shadow-sm mb-4">
+          <table class="timetable-grid">
+            <thead>
+              <tr>
+                <th class="timetable-time-col">TIME</th>
+                <th class="timetable-header">MONDAY</th>
+                <th class="timetable-header">TUESDAY</th>
+                <th class="timetable-header">WEDNESDAY</th>
+                <th class="timetable-header">THURSDAY</th>
+                <th class="timetable-header">FRIDAY</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <!-- Slot 1: 08:30 - 09:30 -->
+              <tr>
+                <td class="timetable-time-col">08:30 - 09:30</td>
+                <td class="timetable-cell" id="cell-mon-0830" onclick="openAddModalForSlot('Monday', '08:30', '09:30');"><?php renderSlotCell('mon', '08:30', '09:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-0830" onclick="openAddModalForSlot('Tuesday', '08:30', '09:30');"><?php renderSlotCell('tue', '08:30', '09:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-0830" onclick="openAddModalForSlot('Wednesday', '08:30', '09:30');"><?php renderSlotCell('wed', '08:30', '09:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-0830" onclick="openAddModalForSlot('Thursday', '08:30', '09:30');"><?php renderSlotCell('thu', '08:30', '09:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-0830" onclick="openAddModalForSlot('Friday', '08:30', '09:30');"><?php renderSlotCell('fri', '08:30', '09:30'); ?></td>
+              </tr>
+
+              <!-- Slot 2: 09:30 - 10:30 -->
+              <tr>
+                <td class="timetable-time-col">09:30 - 10:30</td>
+                <td class="timetable-cell" id="cell-mon-0930" onclick="openAddModalForSlot('Monday', '09:30', '10:30');"><?php renderSlotCell('mon', '09:30', '10:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-0930" onclick="openAddModalForSlot('Tuesday', '09:30', '10:30');"><?php renderSlotCell('tue', '09:30', '10:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-0930" onclick="openAddModalForSlot('Wednesday', '09:30', '10:30');"><?php renderSlotCell('wed', '09:30', '10:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-0930" onclick="openAddModalForSlot('Thursday', '09:30', '10:30');"><?php renderSlotCell('thu', '09:30', '10:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-0930" onclick="openAddModalForSlot('Friday', '09:30', '10:30');"><?php renderSlotCell('fri', '09:30', '10:30'); ?></td>
+              </tr>
+
+              <!-- Slot 3: 10:30 - 11:30 -->
+              <tr>
+                <td class="timetable-time-col">10:30 - 11:30</td>
+                <td class="timetable-cell" id="cell-mon-1030" onclick="openAddModalForSlot('Monday', '10:30', '11:30');"><?php renderSlotCell('mon', '10:30', '11:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1030" onclick="openAddModalForSlot('Tuesday', '10:30', '11:30');"><?php renderSlotCell('tue', '10:30', '11:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1030" onclick="openAddModalForSlot('Wednesday', '10:30', '11:30');"><?php renderSlotCell('wed', '10:30', '11:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1030" onclick="openAddModalForSlot('Thursday', '10:30', '11:30');"><?php renderSlotCell('thu', '10:30', '11:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1030" onclick="openAddModalForSlot('Friday', '10:30', '11:30');"><?php renderSlotCell('fri', '10:30', '11:30'); ?></td>
+              </tr>
+
+              <!-- Slot 4: 11:30 - 12:30 -->
+              <tr>
+                <td class="timetable-time-col">11:30 - 12:30</td>
+                <td class="timetable-cell" id="cell-mon-1130" onclick="openAddModalForSlot('Monday', '11:30', '12:30');"><?php renderSlotCell('mon', '11:30', '12:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1130" onclick="openAddModalForSlot('Tuesday', '11:30', '12:30');"><?php renderSlotCell('tue', '11:30', '12:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1130" onclick="openAddModalForSlot('Wednesday', '11:30', '12:30');"><?php renderSlotCell('wed', '11:30', '12:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1130" onclick="openAddModalForSlot('Thursday', '11:30', '12:30');"><?php renderSlotCell('thu', '11:30', '12:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1130" onclick="openAddModalForSlot('Friday', '11:30', '12:30');"><?php renderSlotCell('fri', '11:30', '12:30'); ?></td>
+              </tr>
+
+              <!-- Lunch Break / Recess -->
+              <tr>
+                <td class="timetable-time-col text-muted bg-light" style="font-size: 10px;">12:30 - 13:30</td>
+                <td colspan="5" class="text-center text-muted bg-light border-0 py-2 small fw-semibold" style="letter-spacing: 1px; font-size: 11px;">
+                  <i class="bi bi-cup-hot me-1"></i> LUNCH BREAK / RECESS
+                </td>
+              </tr>
+
+              <!-- Slot 5: 13:30 - 14:30 -->
+              <tr>
+                <td class="timetable-time-col">13:30 - 14:30</td>
+                <td class="timetable-cell" id="cell-mon-1330" onclick="openAddModalForSlot('Monday', '13:30', '14:30');"><?php renderSlotCell('mon', '13:30', '14:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1330" onclick="openAddModalForSlot('Tuesday', '13:30', '14:30');"><?php renderSlotCell('tue', '13:30', '14:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1330" onclick="openAddModalForSlot('Wednesday', '13:30', '14:30');"><?php renderSlotCell('wed', '13:30', '14:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1330" onclick="openAddModalForSlot('Thursday', '13:30', '14:30');"><?php renderSlotCell('thu', '13:30', '14:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1330" onclick="openAddModalForSlot('Friday', '13:30', '14:30');"><?php renderSlotCell('fri', '13:30', '14:30'); ?></td>
+              </tr>
+
+              <!-- Slot 6: 14:30 - 15:30 -->
+              <tr>
+                <td class="timetable-time-col">14:30 - 15:30</td>
+                <td class="timetable-cell" id="cell-mon-1430" onclick="openAddModalForSlot('Monday', '14:30', '15:30');"><?php renderSlotCell('mon', '14:30', '15:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1430" onclick="openAddModalForSlot('Tuesday', '14:30', '15:30');"><?php renderSlotCell('tue', '14:30', '15:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1430" onclick="openAddModalForSlot('Wednesday', '14:30', '15:30');"><?php renderSlotCell('wed', '14:30', '15:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1430" onclick="openAddModalForSlot('Thursday', '14:30', '15:30');"><?php renderSlotCell('thu', '14:30', '15:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1430" onclick="openAddModalForSlot('Friday', '14:30', '15:30');"><?php renderSlotCell('fri', '14:30', '15:30'); ?></td>
+              </tr>
+
+              <!-- Slot 7: 15:30 - 16:30 -->
+              <tr>
+                <td class="timetable-time-col">15:30 - 16:30</td>
+                <td class="timetable-cell" id="cell-mon-1530" onclick="openAddModalForSlot('Monday', '15:30', '16:30');"><?php renderSlotCell('mon', '15:30', '16:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1530" onclick="openAddModalForSlot('Tuesday', '15:30', '16:30');"><?php renderSlotCell('tue', '15:30', '16:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1530" onclick="openAddModalForSlot('Wednesday', '15:30', '16:30');"><?php renderSlotCell('wed', '15:30', '16:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1530" onclick="openAddModalForSlot('Thursday', '15:30', '16:30');"><?php renderSlotCell('thu', '15:30', '16:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1530" onclick="openAddModalForSlot('Friday', '15:30', '16:30');"><?php renderSlotCell('fri', '15:30', '16:30'); ?></td>
+              </tr>
+
+              <!-- Slot 8: 16:30 - 17:30 -->
+              <tr>
+                <td class="timetable-time-col">16:30 - 17:30</td>
+                <td class="timetable-cell" id="cell-mon-1630" onclick="openAddModalForSlot('Monday', '16:30', '17:30');"><?php renderSlotCell('mon', '16:30', '17:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1630" onclick="openAddModalForSlot('Tuesday', '16:30', '17:30');"><?php renderSlotCell('tue', '16:30', '17:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1630" onclick="openAddModalForSlot('Wednesday', '16:30', '17:30');"><?php renderSlotCell('wed', '16:30', '17:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1630" onclick="openAddModalForSlot('Thursday', '16:30', '17:30');"><?php renderSlotCell('thu', '16:30', '17:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1630" onclick="openAddModalForSlot('Friday', '16:30', '17:30');"><?php renderSlotCell('fri', '16:30', '17:30'); ?></td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+  <!-- ADD TIMETABLE MODAL -->
+  <div class="modal fade" id="addTimetableModal" tabindex="-1" aria-labelledby="addTimetableModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold text-dark" id="addTimetableModalLabel">
+            <i class="bi bi-calendar-plus text-primary me-2"></i>Add Timetable Entry
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addTimetableForm">
+          <div class="modal-body p-4">
+            
+            <div class="row g-3 mb-3">
+              <div class="col-md-5">
+                <label class="su-label">Course Code <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="ttCourseCode" placeholder="e.g. CS405" required />
+              </div>
+              <div class="col-md-7">
+                <label class="su-label">Course Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="ttCourseTitle" placeholder="e.g. Cloud Computing" required />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="su-label">Lecturer / Instructor</label>
+              <input type="text" class="form-control su-input" id="ttInstructor" placeholder="e.g. Prof. Liam Zhang" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-12">
+                <label class="su-label">Day of Week <span class="text-danger">*</span></label>
+                <select class="form-select su-input" id="ttDay" required>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="su-label">Start Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <input type="time" class="form-control su-input" id="ttStartTime" value="08:30" required />
+              </div>
+              <div class="col-md-6">
+                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <input type="time" class="form-control su-input" id="ttEndTime" value="09:30" required />
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer border-top p-3">
+            <button type="button" class="btn btn-su-outline" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" onclick="addTimetable();" class="btn btn-su-indigo px-4">Add to Timetable</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT TIMETABLE MODAL -->
+  <div class="modal fade" id="editTimetableModal" tabindex="-1" aria-labelledby="editTimetableModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold text-dark" id="editTimetableModalLabel">
+            <i class="bi bi-pencil-square text-primary me-2"></i>Edit Timetable Entry
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editTimetableForm">
+          <input type="hidden" id="editTtId" />
+          <div class="modal-body p-4">
+            
+            <div class="row g-3 mb-3">
+              <div class="col-md-5">
+                <label class="su-label">Course Code <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="editTtCourseCode" placeholder="e.g. CS405" required />
+              </div>
+              <div class="col-md-7">
+                <label class="su-label">Course Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="editTtCourseTitle" placeholder="e.g. Cloud Computing" required />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="su-label">Lecturer / Instructor</label>
+              <input type="text" class="form-control su-input" id="editTtInstructor" placeholder="e.g. Prof. Liam Zhang" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-12">
+                <label class="su-label">Day of Week <span class="text-danger">*</span></label>
+                <select class="form-select su-input" id="editTtDay" required>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="su-label">Start Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <input type="time" class="form-control su-input" id="editTtStartTime" required />
+              </div>
+              <div class="col-md-6">
+                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <input type="time" class="form-control su-input" id="editTtEndTime" required />
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer border-top p-3 d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-su-outline" data-bs-dismiss="modal">Cancel</button>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" onclick="updateTimetable();" class="btn btn-su-indigo px-4">
+                <i class="bi bi-check-lg me-1"></i>Save Changes
+              </button>
+              <button type="button" onclick="deleteTimetable();" class="btn btn-outline-danger px-3">
+                <i class="bi bi-trash3 me-1"></i>Delete
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<?php
+$extraJs = '
+  <script>
+    function parseTimeToMinutes(t) {
+      if (!t) return 0;
+      const parts = t.split(":");
+      return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+    }
+
+    function openAddModalForSlot(day, startTime, endTime) {
+      document.getElementById("ttDay").value = day;
+      document.getElementById("ttStartTime").value = startTime;
+      document.getElementById("ttEndTime").value = endTime;
+      const addModal = new bootstrap.Modal(document.getElementById("addTimetableModal"));
+      addModal.show();
+    }
+
+    function openEditModal(entry) {
+      document.getElementById("editTtId").value = entry.id;
+      document.getElementById("editTtCourseCode").value = entry.course_code || "";
+      document.getElementById("editTtCourseTitle").value = entry.course_name || "";
+      document.getElementById("editTtInstructor").value = entry.lecturer_name || "";
+      document.getElementById("editTtDay").value = entry.day_of_week || "Monday";
+      document.getElementById("editTtStartTime").value = entry.start_time || "08:30";
+      document.getElementById("editTtEndTime").value = entry.end_time || "09:30";
+
+      const editModal = new bootstrap.Modal(document.getElementById("editTimetableModal"));
+      editModal.show();
+    }
+
+    function addTimetable() {
+      const courseCode   = document.getElementById("ttCourseCode").value.trim();
+      const courseName   = document.getElementById("ttCourseTitle").value.trim();
+      const lecturerName = document.getElementById("ttInstructor").value.trim();
+      const dayOfWeek    = document.getElementById("ttDay").value;
+      const startTime    = document.getElementById("ttStartTime").value;
+      const endTime      = document.getElementById("ttEndTime").value;
+
+      if (courseCode === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Course Code.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (courseName === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Course Title.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (dayOfWeek === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please select the Day of Week.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startTime === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Start Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (endTime === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the End Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+
+      const startMin = parseTimeToMinutes(startTime);
+      const endMin   = parseTimeToMinutes(endTime);
+
+      if (startMin >= endMin) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "End Time must be after Start Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startMin < 510) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start before 08:30 AM.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (endMin > 1110) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot end after 06:30 PM.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startMin < 810 && endMin > 750) {
+        Swal.fire({ icon: "error", title: "Lunch Break Conflict", text: "Cannot schedule lectures during the Lunch Interval (12:30 PM - 01:30 PM).", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+
+      const form = new FormData();
+      form.append("course_code", courseCode);
+      form.append("course_name", courseName);
+      form.append("lecturer_name", lecturerName);
+      form.append("day_of_week", dayOfWeek);
+      form.append("start_time", startTime);
+      form.append("end_time", endTime);
+
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = function () {
+        if (request.readyState === 4 && request.status === 200) {
+          const response = request.responseText.trim();
+          if (response === "success") {
+            Swal.fire({
+              icon: "success",
+              title: "Success!",
+              text: "Timetable entry added successfully!",
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
+          }
+        }
+      };
+      request.open("POST", "api/addTimetableProcess.php", true);
+      request.send(form);
+    }
+
+    function updateTimetable() {
+      const id           = document.getElementById("editTtId").value;
+      const courseCode   = document.getElementById("editTtCourseCode").value.trim();
+      const courseName   = document.getElementById("editTtCourseTitle").value.trim();
+      const lecturerName = document.getElementById("editTtInstructor").value.trim();
+      const dayOfWeek    = document.getElementById("editTtDay").value;
+      const startTime    = document.getElementById("editTtStartTime").value;
+      const endTime      = document.getElementById("editTtEndTime").value;
+
+      if (id === "") {
+        Swal.fire({ icon: "error", title: "Error", text: "Invalid Entry ID.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (courseCode === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Course Code.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (courseName === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Course Title.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (dayOfWeek === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please select the Day of Week.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startTime === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Start Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (endTime === "") {
+        Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the End Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+
+      const startMin = parseTimeToMinutes(startTime);
+      const endMin   = parseTimeToMinutes(endTime);
+
+      if (startMin >= endMin) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "End Time must be after Start Time.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startMin < 510) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start before 08:30 AM.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (endMin > 1110) {
+        Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot end after 06:30 PM.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+      if (startMin < 810 && endMin > 750) {
+        Swal.fire({ icon: "error", title: "Lunch Break Conflict", text: "Cannot schedule lectures during the Lunch Interval (12:30 PM - 01:30 PM).", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+
+      const form = new FormData();
+      form.append("id", id);
+      form.append("course_code", courseCode);
+      form.append("course_name", courseName);
+      form.append("lecturer_name", lecturerName);
+      form.append("day_of_week", dayOfWeek);
+      form.append("start_time", startTime);
+      form.append("end_time", endTime);
+
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = function () {
+        if (request.readyState === 4 && request.status === 200) {
+          const response = request.responseText.trim();
+          if (response === "success") {
+            Swal.fire({
+              icon: "success",
+              title: "Updated!",
+              text: "Timetable entry updated successfully!",
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
+          }
+        }
+      };
+      request.open("POST", "api/updateTimetableProcess.php", true);
+      request.send(form);
+    }
+
+    function deleteTimetable() {
+      const id = document.getElementById("editTtId").value;
+      if (id === "") {
+        Swal.fire({ icon: "error", title: "Error", text: "Invalid Entry ID.", confirmButtonColor: "#4f46e5" });
+        return;
+      }
+
+      Swal.fire({
+        title: "Delete Timetable Entry?",
+        text: "Are you sure you want to delete this timetable entry? This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Cancel"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const form = new FormData();
+          form.append("id", id);
+
+          const request = new XMLHttpRequest();
+          request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) {
+              const response = request.responseText.trim();
+              if (response === "success") {
+                Swal.fire({
+                  icon: "success",
+                  title: "Deleted!",
+                  text: "Timetable entry deleted successfully!",
+                  timer: 1500,
+                  showConfirmButton: false
+                }).then(() => {
+                  location.reload();
+                });
+              } else {
+                Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
+              }
+            }
+          };
+          request.open("POST", "api/deleteTimetableProcess.php", true);
+          request.send(form);
+        }
+      });
+    }
+  </script>
+';
+require_once "includes/footer.php";
+?>
