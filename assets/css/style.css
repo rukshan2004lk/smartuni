@@ -1157,3 +1157,82 @@ a {
   color: #dc3545 !important;
 }
 
+/* ==========================================
+   ACADEMIC TIMETABLE STYLES
+   ========================================== */
+.timetable-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 8px;
+}
+.timetable-header {
+  background-color: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--su-text-dark);
+  text-align: center;
+  padding: 12px;
+  border-radius: var(--su-radius-input);
+  border: 1px solid var(--su-border-color);
+}
+.timetable-time-col {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--su-text-muted);
+  text-align: center;
+  vertical-align: middle;
+  padding: 8px;
+  background-color: #ffffff;
+  border-radius: var(--su-radius-input);
+  border: 1px solid var(--su-border-color);
+  width: 100px;
+}
+.timetable-cell {
+  background-color: #ffffff;
+  border: 1px dashed var(--su-border-color);
+  border-radius: var(--su-radius-card);
+  min-height: 90px;
+  padding: 8px;
+  vertical-align: top;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.timetable-cell:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+.timetable-card {
+  border-radius: 8px;
+  padding: 10px;
+  color: #ffffff;
+  font-size: 12px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+.timetable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+}
+.tt-card-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.tt-card-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.tt-card-emerald { background: linear-gradient(135deg, #10b981, #059669); }
+.tt-card-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.tt-card-rose { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+
+.tt-code { font-weight: 700; font-size: 12.5px; letter-spacing: -0.2px; }
+.tt-title { font-size: 11.5px; opacity: 0.95; margin-bottom: 4px; }
+.tt-meta { font-size: 10.5px; opacity: 0.85; display: flex; align-items: center; gap: 4px; }
+
+/* Remove up/down number spin buttons */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+

@@ -1,4 +1,18 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$currentUser = $_SESSION['user'] ?? null;
+$currentUserRole = intval($currentUser['role_id'] ?? 1);
+if ($currentUser && intval($currentUser['status_id'] ?? 1) === 1) {
+    $activePageFile = basename($_SERVER['PHP_SELF']);
+    if ($activePageFile !== 'verification-pending.php' && $activePageFile !== 'contacts.php') {
+        header("Location: verification-pending.php");
+        exit();
+    }
+}
+
 if (!isset($pageTitle)) {
   $pageTitle = 'SmartUni Portal';
 }
@@ -34,28 +48,50 @@ if (!isset($currentPage)) {
         </div>
         <nav class="sidebar-nav">
           <a href="dashboard.php" class="sidebar-link <?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>"><i class="bi bi-grid-fill"></i> Dashboard</a>
-          <a href="timetable.php" class="sidebar-link <?php echo ($currentPage == 'timetable') ? 'active' : ''; ?>"><i class="bi bi-calendar3"></i> Timetable</a>
-          <a href="facilities.php" class="sidebar-link <?php echo ($currentPage == 'facilities') ? 'active' : ''; ?>"><i class="bi bi-building"></i> Facilities</a>
-          <a href="my-bookings.php" class="sidebar-link <?php echo ($currentPage == 'my-bookings') ? 'active' : ''; ?>"><i class="bi bi-calendar-check"></i> My Bookings</a>
+          <?php if ($currentUserRole !== 3): ?>
+            <a href="timetable.php" class="sidebar-link <?php echo ($currentPage == 'timetable') ? 'active' : ''; ?>"><i class="bi bi-calendar3"></i> Timetable</a>
+          <?php endif; ?>
+          <?php if ($currentUserRole !== 1): ?>
+            <a href="facilities.php" class="sidebar-link <?php echo ($currentPage == 'facilities') ? 'active' : ''; ?>"><i class="bi bi-building"></i> Facilities</a>
+          <?php endif; ?>
+          <?php if ($currentUserRole !== 1): ?>
+            <a href="my-bookings.php" class="sidebar-link <?php echo ($currentPage == 'my-bookings') ? 'active' : ''; ?>"><i class="bi bi-calendar-check"></i> My Bookings</a>
+          <?php endif; ?>
           <a href="service-requests.php" class="sidebar-link <?php echo ($currentPage == 'service-requests') ? 'active' : ''; ?>"><i class="bi bi-tools"></i> Service Requests</a>
           <a href="events.php" class="sidebar-link <?php echo ($currentPage == 'events') ? 'active' : ''; ?>"><i class="bi bi-calendar-event"></i> Events</a>
           <a href="contacts.php" class="sidebar-link <?php echo ($currentPage == 'contacts') ? 'active' : ''; ?>"><i class="bi bi-shield-exclamation"></i> Safety &amp; Contacts</a>
-          <a href="staff-approvals.php" class="sidebar-link <?php echo ($currentPage == 'staff-approvals') ? 'active' : ''; ?>"><i class="bi bi-person-badge"></i> Staff Approvals</a>
+          <?php if ($currentUserRole === 3): ?>
+            <a href="staff-approvals.php" class="sidebar-link <?php echo ($currentPage == 'staff-approvals') ? 'active' : ''; ?>"><i class="bi bi-person-badge"></i> Staff Approvals</a>
+            <a href="users-list.php" class="sidebar-link <?php echo ($currentPage == 'users-list') ? 'active' : ''; ?>"><i class="bi bi-people-fill"></i> User Directory</a>
+          <?php endif; ?>
         </nav>
       </div>
 
-      <div class="sidebar-user-footer d-flex align-items-center justify-content-between">
+      <?php
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $navUser = $_SESSION['user'] ?? [
+            'fname' => 'Sandeesha',
+            'reg_number' => '1234567',
+            'profile_pic' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop'
+        ];
+        $headerPic = !empty($navUser['profile_pic']) ? $navUser['profile_pic'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop';
+        $headerName = $navUser['fname'] ?? 'Sandeesha';
+        $headerReg = $navUser['reg_number'] ?? '1234567';
+      ?>
+      <div class="sidebar-user-footer d-flex align-items-center justify-content-between mt-auto">
         <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
           <img 
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop" 
-            alt="Sandeesha" 
-            class="rounded-circle flex-shrink-0" 
+            src="<?= htmlspecialchars($headerPic) ?>" 
+            alt="<?= htmlspecialchars($headerName) ?>" 
+            class="rounded-circle flex-shrink-0 object-fit-cover" 
             width="38" 
             height="38" 
           />
           <div class="text-truncate">
-            <div class="fw-semibold text-dark text-truncate lh-sm small">Sandeesha</div>
-            <div class="text-muted small" style="font-size: 11px;">ID: 202488</div>
+            <div class="fw-semibold text-dark text-truncate lh-sm small"><?= htmlspecialchars($headerName) ?></div>
+            <div class="text-muted small" style="font-size: 11px;">ID: <?= htmlspecialchars($headerReg) ?></div>
           </div>
         </div>
 

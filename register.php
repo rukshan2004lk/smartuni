@@ -43,7 +43,7 @@ $roles_rs = Database::search("SELECT * FROM `roles`");
         <p class="su-subtext">Single sign-on access to coursework, research data, and campus portals.</p>
       </div>
 
-      <form action="verification-pending.html">
+      <form action="verification-pending.php">
 
         <div class="mb-3">
           <label for="role" class="su-label">Academic Affiliation</label>
