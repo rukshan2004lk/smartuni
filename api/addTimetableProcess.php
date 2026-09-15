@@ -26,6 +26,8 @@ function parseTimeToMinutes($timeStr) {
 $start_min = parseTimeToMinutes($start_time);
 $end_min   = parseTimeToMinutes($end_time);
 
+$userId = intval($_SESSION["user"]["id"]);
+
 if (empty($course_code)) {
     echo "Please enter the Course Code.";
 } else if (empty($course_name)) {
@@ -48,9 +50,9 @@ if (empty($course_code)) {
     echo "Error: Cannot schedule lectures during the Lunch Interval (12:30 PM - 01:30 PM).";
 } else {
     Database::iud("INSERT INTO `timetable` 
-        (`course_name`, `course_code`, `location`, `day_of_week`, `start_time`, `end_time`) 
+        (`user_id`, `course_name`, `course_code`, `location`, `day_of_week`, `start_time`, `end_time`) 
         VALUES 
-        ('" . addslashes($course_name) . "', '" . addslashes($course_code) . "', '" . addslashes($location) . "', '" . addslashes($day_of_week) . "', '" . addslashes($start_time) . "', '" . addslashes($end_time) . "')");
+        ('" . $userId . "', '" . addslashes($course_name) . "', '" . addslashes($course_code) . "', '" . addslashes($location) . "', '" . addslashes($day_of_week) . "', '" . addslashes($start_time) . "', '" . addslashes($end_time) . "')");
 
     echo "success";
 }

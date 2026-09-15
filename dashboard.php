@@ -89,7 +89,7 @@ if (!function_exists('parseTimeToMinutesDashboard')) {
 $todayDayName  = date("l");
 $todayDayShort = date("D");
 
-$today_tt_rs = Database::search("SELECT * FROM `timetable` WHERE LOWER(`day_of_week`) LIKE '%" . strtolower(addslashes($todayDayName)) . "%' OR LOWER(`day_of_week`) LIKE '%" . strtolower(addslashes($todayDayShort)) . "%' ORDER BY `start_time` ASC");
+$today_tt_rs = Database::search("SELECT * FROM `timetable` WHERE `user_id` = '$userId' AND (LOWER(`day_of_week`) LIKE '%" . strtolower(addslashes($todayDayName)) . "%' OR LOWER(`day_of_week`) LIKE '%" . strtolower(addslashes($todayDayShort)) . "%') ORDER BY `start_time` ASC");
 $today_timetable = [];
 if ($today_tt_rs && $today_tt_rs->num_rows > 0) {
     while ($row = $today_tt_rs->fetch_assoc()) {

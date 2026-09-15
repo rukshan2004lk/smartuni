@@ -1,8 +1,13 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once "includes/connection.php";
 
 $pageTitle = "SmartUni Portal - Academic Timetable";
 $currentPage = "timetable";
+
+$userId = intval($_SESSION['user']['id'] ?? 0);
 
 // Helper function to convert time string (HH:MM or HH:MM:SS) to total minutes from midnight
 function parseTimeToMinutes($timeStr) {
@@ -14,9 +19,9 @@ function parseTimeToMinutes($timeStr) {
     return ($h * 60) + $m;
 }
 
-// Fetch active entries from database table `timetable`
+// Fetch active entries from database table `timetable` for current user
 $all_entries = [];
-$timetable_rs = Database::search("SELECT * FROM `timetable`");
+$timetable_rs = Database::search("SELECT * FROM `timetable` WHERE `user_id` = '$userId'");
 if ($timetable_rs) {
     while ($row = $timetable_rs->fetch_assoc()) {
         $dayKey = strtolower($row['day_of_week']);

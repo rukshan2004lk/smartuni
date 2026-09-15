@@ -27,6 +27,9 @@ function parseTimeToMinutes($timeStr) {
 $start_min = parseTimeToMinutes($start_time);
 $end_min   = parseTimeToMinutes($end_time);
 
+$userId   = intval($_SESSION["user"]["id"]);
+$userRole = intval($_SESSION["user"]["role_id"] ?? 1);
+
 if (empty($id)) {
     echo "Invalid Timetable Entry ID.";
 } else if (empty($course_code)) {
@@ -50,6 +53,18 @@ if (empty($id)) {
 } else if ($start_min < 810 && $end_min > 750) { // Lunch interval 12:30 PM - 01:30 PM (750 to 810 mins)
     echo "Error: Cannot schedule lectures during the Lunch Interval (12:30 PM - 01:30 PM).";
 } else {
+    // Check if entry exists and user is owner or admin
+    $check_rs = Database::search("SELECT `user_id` FROM `timetable` WHERE `id` = '" . addslashes($id) . "'");
+    if (!$check_rs || $check_rs->num_rows === 0) {
+        echo "Error: Timetable entry not found.";
+        exit();
+    }
+    $entry = $check_rs->fetch_assoc();
+    if ($userRole !== 3 && intval($entry["user_id"]) !== $userId) {
+        echo "Unauthorized: You can only edit your own timetable entries.";
+        exit();
+    }
+
     Database::iud("UPDATE `timetable` SET 
         `course_code` = '" . addslashes($course_code) . "',
         `course_name` = '" . addslashes($course_name) . "',
