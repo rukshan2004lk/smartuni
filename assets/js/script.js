@@ -294,6 +294,10 @@ function addTimetable() {
     Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start before 08:30 AM.", confirmButtonColor: "#4f46e5" });
     return;
   }
+  if (startMin > 1050) {
+    Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start after 05:30 PM.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
   if (endMin > 1110) {
     Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot end after 06:30 PM.", confirmButtonColor: "#4f46e5" });
     return;
@@ -380,6 +384,10 @@ function updateTimetable() {
   }
   if (startMin < 510) {
     Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start before 08:30 AM.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+  if (startMin > 1050) {
+    Swal.fire({ icon: "warning", title: "Invalid Time Range", text: "Lectures cannot start after 05:30 PM.", confirmButtonColor: "#4f46e5" });
     return;
   }
   if (endMin > 1110) {

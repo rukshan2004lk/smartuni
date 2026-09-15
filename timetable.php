@@ -207,6 +207,16 @@ require_once "includes/header.php";
                 <td class="timetable-cell" id="cell-fri-1630" onclick="openAddModalForSlot('Friday', '16:30', '17:30');"><?php renderSlotCell('fri', '16:30', '17:30'); ?></td>
               </tr>
 
+              <!-- Slot 9: 17:30 - 18:30 -->
+              <tr>
+                <td class="timetable-time-col">17:30 - 18:30</td>
+                <td class="timetable-cell" id="cell-mon-1730" onclick="openAddModalForSlot('Monday', '17:30', '18:30');"><?php renderSlotCell('mon', '17:30', '18:30'); ?></td>
+                <td class="timetable-cell" id="cell-tue-1730" onclick="openAddModalForSlot('Tuesday', '17:30', '18:30');"><?php renderSlotCell('tue', '17:30', '18:30'); ?></td>
+                <td class="timetable-cell" id="cell-wed-1730" onclick="openAddModalForSlot('Wednesday', '17:30', '18:30');"><?php renderSlotCell('wed', '17:30', '18:30'); ?></td>
+                <td class="timetable-cell" id="cell-thu-1730" onclick="openAddModalForSlot('Thursday', '17:30', '18:30');"><?php renderSlotCell('thu', '17:30', '18:30'); ?></td>
+                <td class="timetable-cell" id="cell-fri-1730" onclick="openAddModalForSlot('Friday', '17:30', '18:30');"><?php renderSlotCell('fri', '17:30', '18:30'); ?></td>
+              </tr>
+
             </tbody>
           </table>
         </div>
@@ -259,7 +269,7 @@ require_once "includes/header.php";
                 <input type="time" class="form-control su-input" id="ttStartTime" value="08:30" required />
               </div>
               <div class="col-md-6">
-                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 06:30 PM)</label>
                 <input type="time" class="form-control su-input" id="ttEndTime" value="09:30" required />
               </div>
             </div>
@@ -323,7 +333,7 @@ require_once "includes/header.php";
                 <input type="time" class="form-control su-input" id="editTtStartTime" required />
               </div>
               <div class="col-md-6">
-                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 05:30 PM)</label>
+                <label class="su-label">End Time <span class="text-danger">*</span> (08:30 AM – 06:30 PM)</label>
                 <input type="time" class="form-control su-input" id="editTtEndTime" required />
               </div>
             </div>

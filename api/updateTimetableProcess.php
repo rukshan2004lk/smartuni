@@ -43,6 +43,8 @@ if (empty($id)) {
     echo "End Time must be after Start Time.";
 } else if ($start_min < 510) { // 08:30 AM
     echo "Error: Lectures cannot start before 08:30 AM.";
+} else if ($start_min > 1050) { // 05:30 PM (17:30)
+    echo "Error: Lectures cannot start after 05:30 PM.";
 } else if ($end_min > 1110) { // 06:30 PM (18:30)
     echo "Error: Lectures cannot end after 06:30 PM.";
 } else if ($start_min < 810 && $end_min > 750) { // Lunch interval 12:30 PM - 01:30 PM (750 to 810 mins)
