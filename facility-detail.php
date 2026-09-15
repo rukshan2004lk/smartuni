@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once "includes/connection.php";
 
 $userRole = intval($_SESSION['user']['role_id'] ?? 1);

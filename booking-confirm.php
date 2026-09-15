@@ -1,9 +1,18 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once "includes/connection.php";
 
 $pageTitle = "SmartUni Portal - Confirm Booking Details";
 $currentPage = "facilities";
 require_once "includes/header.php";
+
+$userRole = intval($_SESSION['user']['role_id'] ?? 1);
+if ($userRole === 1) { // Student
+    echo "<script>window.location.href = 'dashboard.php';</script>";
+    exit();
+}
 
 $facility_id = isset($_GET['facility_id']) ? intval($_GET['facility_id']) : 0;
 $facility = null;
