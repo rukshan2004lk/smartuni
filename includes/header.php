@@ -78,12 +78,22 @@ if (!isset($currentPage)) {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        // Automatically clean up legacy unsplash image URLs in database
+        try {
+            Database::iud("UPDATE `users` SET `profile_pic` = 'images/user.png' WHERE `profile_pic` LIKE '%unsplash%'");
+        } catch (Exception $e) {}
+
+        if (isset($_SESSION['user']['profile_pic']) && str_contains($_SESSION['user']['profile_pic'], 'unsplash')) {
+            $_SESSION['user']['profile_pic'] = 'images/user.png';
+        }
+
         $navUser = $_SESSION['user'] ?? [
             'fname' => 'Sandeesha',
             'reg_number' => '1234567',
-            'profile_pic' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop'
+            'profile_pic' => 'images/user.png'
         ];
-        $headerPic = !empty($navUser['profile_pic']) ? $navUser['profile_pic'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop';
+        $rawHeaderPic = $navUser['profile_pic'] ?? '';
+        $headerPic = (!empty($rawHeaderPic) && !str_contains($rawHeaderPic, 'unsplash')) ? $rawHeaderPic : 'images/user.png';
         $headerName = $navUser['fname'] ?? 'Sandeesha';
         $headerReg = $navUser['reg_number'] ?? '1234567';
       ?>

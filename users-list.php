@@ -109,7 +109,8 @@ if ($statuses_rs && $statuses_rs->num_rows > 0) {
                       $stId = intval($u['status_id']);
                       $rId = intval($u['role_id']);
                       
-                      $avatar = !empty($u['profile_pic']) ? $u['profile_pic'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop';
+                      $rawAvatar = $u['profile_pic'] ?? '';
+                      $avatar    = (!empty($rawAvatar) && !str_contains($rawAvatar, 'unsplash')) ? $rawAvatar : 'images/user.png';
 
                       // Status Badge Colors
                       $statusBadgeClass = "su-badge-amber";

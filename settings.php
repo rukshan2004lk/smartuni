@@ -24,13 +24,14 @@ if ($user_rs && $user_rs->num_rows > 0) {
     }
 }
 
-$fname     = $user['fname'] ?? 'Sandeesha';
-$lname     = $user['lname'] ?? 'Rukshan';
-$email     = $user['email'] ?? 'sandeesha@smartuni.edu';
-$mobile    = $user['mobile'] ?? '0713218157';
-$regNumber = $user['reg_number'] ?? '1234567';
-$roleName  = $user['role_name'] ?? 'Student';
-$profilePic = !empty($user['profile_pic']) ? $user['profile_pic'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=160&auto=format&fit=crop';
+$fname     = $user['fname'] ?? '';
+$lname     = $user['lname'] ?? '';
+$email     = $user['email'] ?? '';
+$mobile    = $user['mobile'] ?? '';
+$regNumber = $user['reg_number'] ?? '';
+$roleName  = $user['role_name'] ?? '';
+$rawPic     = $user['profile_pic'] ?? '';
+$profilePic = (!empty($rawPic) && !str_contains($rawPic, 'unsplash')) ? $rawPic : 'images/user.png';
 ?>
 
         <div class="mb-4">
