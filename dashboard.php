@@ -268,13 +268,13 @@ $currentMin = (intval(date('H')) * 60) + intval(date('i'));
 
                         if ($currentMin >= $startMin && $currentMin <= $endMin) {
                             $borderClass = 'border-start border-4 border-success';
-                            $statusBadge = '<span class="su-badge su-badge-green badge bg-success-subtle text-success">In Progress</span>';
+                           
                         } else if ($currentMin < $startMin) {
                             $borderClass = 'border-start border-4 border-primary';
-                            $statusBadge = '<span class="su-badge su-badge-indigo badge bg-primary-subtle text-primary">Upcoming</span>';
+                         
                         } else {
                             $borderClass = 'border-start border-4 border-secondary';
-                            $statusBadge = '<span class="su-badge su-badge-gray badge bg-secondary-subtle text-secondary">Completed</span>';
+                          
                         }
                       ?>
                       <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 <?= $borderClass ?>">
