@@ -85,18 +85,18 @@ if (empty($bookingDate)) {
 } else if ($attendees > $maxCapacity) {
     echo "Number of attendees (" . $attendees . ") exceeds facility maximum capacity (" . $maxCapacity . " persons).";
 } else {
-    // Check for existing overlapping bookings for the same facility on the same date
+    // Check for existing overlapping APPROVED bookings for the same facility on the same date
     $conflict_rs = Database::search("SELECT * FROM `bookings` 
         WHERE `facility_id` = '" . intval($facilityId) . "' 
         AND `booking_date` = '" . addslashes($bookingDate) . "' 
-        AND `status_id` NOT IN ('9', '10') 
+        AND `status_id` IN ('8', '2', '13') 
         AND (`start_time` < '" . addslashes($endTime) . "' AND `end_time` > '" . addslashes($startTime) . "')");
 
     if ($conflict_rs && $conflict_rs->num_rows > 0) {
         $existing = $conflict_rs->fetch_assoc();
         $exStart = date("g:i A", strtotime($existing['start_time']));
         $exEnd   = date("g:i A", strtotime($existing['end_time']));
-        echo "Booking Conflict: This facility is already booked on " . $bookingDate . " from " . $exStart . " to " . $exEnd . ". Please select a different time slot.";
+        echo "Booking Conflict: This facility has already been booked and approved for " . $bookingDate . " from " . $exStart . " to " . $exEnd . ". Please select a different time slot.";
         exit();
     }
 
