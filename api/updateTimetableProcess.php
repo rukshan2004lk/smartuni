@@ -2,19 +2,18 @@
 session_start();
 require_once "../includes/connection.php";
 
-$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
-if ($userRole !== 3) {
-    echo "Unauthorized: Only administrators can update timetable entries.";
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    echo "Unauthorized: Please sign in to update timetable entries.";
     exit();
 }
 
-$id            = trim($_POST["id"] ?? "");
-$course_code   = trim($_POST["course_code"] ?? "");
-$course_name   = trim($_POST["course_name"] ?? "");
-$lecturer_name = trim($_POST["lecturer_name"] ?? "");
-$day_of_week   = trim($_POST["day_of_week"] ?? "");
-$start_time    = trim($_POST["start_time"] ?? "");
-$end_time      = trim($_POST["end_time"] ?? "");
+$id          = trim($_POST["id"] ?? "");
+$course_code = trim($_POST["course_code"] ?? "");
+$course_name = trim($_POST["course_name"] ?? "");
+$location    = trim($_POST["location"] ?? "");
+$day_of_week = trim($_POST["day_of_week"] ?? "");
+$start_time  = trim($_POST["start_time"] ?? "");
+$end_time    = trim($_POST["end_time"] ?? "");
 
 function parseTimeToMinutes($timeStr) {
     $timeStr = trim($timeStr);
@@ -52,7 +51,7 @@ if (empty($id)) {
     Database::iud("UPDATE `timetable` SET 
         `course_code` = '" . addslashes($course_code) . "',
         `course_name` = '" . addslashes($course_name) . "',
-        `lecturer_name` = '" . addslashes($lecturer_name) . "',
+        `location` = '" . addslashes($location) . "',
         `day_of_week` = '" . addslashes($day_of_week) . "',
         `start_time` = '" . addslashes($start_time) . "',
         `end_time` = '" . addslashes($end_time) . "'

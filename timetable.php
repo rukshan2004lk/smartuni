@@ -78,8 +78,8 @@ function renderSlotCell($dayKey, $slotStartStr, $slotEndStr) {
 
             echo '  </div>';
             echo '  <div class="tt-title fw-bold">' . htmlspecialchars($entry['course_name']) . '</div>';
-            if (!empty($entry['lecturer_name'])) {
-                echo '  <div class="tt-meta"><i class="bi bi-person-fill"></i> ' . htmlspecialchars($entry['lecturer_name']) . '</div>';
+            if (!empty($entry['location'])) {
+                echo '  <div class="tt-meta"><i class="bi bi-geo-alt-fill"></i> ' . htmlspecialchars($entry['location']) . '</div>';
             }
             echo '  <div class="tt-meta"><i class="bi bi-clock"></i> ' . htmlspecialchars($entry['start_time'] . ' - ' . $entry['end_time']) . '</div>';
             echo '</div>';
@@ -236,8 +236,8 @@ require_once "includes/header.php";
             </div>
 
             <div class="mb-3">
-              <label class="su-label">Lecturer / Instructor</label>
-              <input type="text" class="form-control su-input" id="ttInstructor" placeholder="e.g. Prof. Liam Zhang" />
+              <label class="su-label">Location</label>
+              <input type="text" class="form-control su-input" id="ttLocation" placeholder="e.g. S502" />
             </div>
 
             <div class="row g-3 mb-3">
@@ -300,8 +300,8 @@ require_once "includes/header.php";
             </div>
 
             <div class="mb-3">
-              <label class="su-label">Lecturer / Instructor</label>
-              <input type="text" class="form-control su-input" id="editTtInstructor" placeholder="e.g. Prof. Liam Zhang" />
+              <label class="su-label">Location</label>
+              <input type="text" class="form-control su-input" id="editTtLocation" placeholder="e.g. Turing Hall 204 / Lab 01" />
             </div>
 
             <div class="row g-3 mb-3">

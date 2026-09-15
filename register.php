@@ -88,7 +88,7 @@ $roles_rs = Database::search("SELECT * FROM `roles`");
 
           </div>
           <div class="input-group">
-            <input id="regNumber" type="text" class="form-control su-input" placeholder="ITT/20xx/xxx" required />
+            <input id="regNumber" type="text" class="form-control su-input" placeholder="Reg Number" required />
             <span class="input-group-text bg-white border-start-0 text-muted"><i class="bi bi-person-badge"></i></span>
           </div>
         </div>
@@ -124,7 +124,7 @@ $roles_rs = Database::search("SELECT * FROM `roles`");
       
           <div class="d-flex justify-content-between align-items-center">
            
-            <span class="text-muted" style="font-size: 10.5px;">8+ chars · 1 uppercase · 1 symbol</span>
+            <span class="text-muted" style="font-size: 10.5px;">8+ chars</span>
           </div>
         </div>
 
@@ -137,11 +137,21 @@ $roles_rs = Database::search("SELECT * FROM `roles`");
           <span>Create account & continue</span>
           <i class="bi bi-arrow-right ms-1"></i>
         </button>
-
-        <div class="d-flex justify-content-between align-items-center text-muted fs-7 mt-3">
-          <span>Already registered? <a href="index.php" class="text-primary fw-medium">Sign in</a></span>
-          <a href="contacts.php" class="text-secondary">Campus IT Helpdesk</a>
-        </div>
+<div class="d-flex justify-content-between align-items-center text-muted fs-7 mt-3">
+  <span>Already registered? <a href="index.php" class="text-primary fw-medium">Sign in</a></span>
+  <a href="javascript:void(0)" 
+     class="text-secondary text-decoration-none" 
+     style="cursor: pointer;"
+     onclick="Swal.fire({
+       title: 'Campus IT Helpdesk',
+       html: 'Contact Number:<br><strong style=\'font-size: 1.25rem;\'><a href=\'tel:0713218157\' class=\'text-primary text-decoration-none\'>071 32 18 157</a></strong>',
+       icon: 'info',
+       confirmButtonText: 'Close',
+       confirmButtonColor: '#0d6efd'
+     });">
+    Campus IT Helpdesk
+  </a>
+</div>
 
       </form>
 
@@ -157,7 +167,7 @@ $roles_rs = Database::search("SELECT * FROM `roles`");
     </div>
   </div>
 </footer>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/script.js"></script>
 </body>

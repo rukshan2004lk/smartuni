@@ -49,10 +49,10 @@ if (!isset($currentPage)) {
 
     <aside class="app-sidebar">
       <div>
-        <div class="sidebar-header">
+        <a href="dashboard.php" class="sidebar-header text-decoration-none d-flex align-items-center gap-2">
           <div class="sidebar-logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
           <span class="sidebar-logo-text">SmartUni</span>
-        </div>
+        </a>
         <nav class="sidebar-nav">
           <a href="dashboard.php" class="sidebar-link <?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>"><i class="bi bi-grid-fill"></i> Dashboard</a>
           <?php if ($currentUserRole !== 3): ?>
@@ -115,10 +115,16 @@ if (!isset($currentPage)) {
 
     <div class="app-main">
 
-      <header class="app-topbar">
+      <header class="app-topbar d-flex align-items-center justify-content-between">
         <button class="topbar-icon-btn d-lg-none" id="sidebarToggleBtn" aria-label="Toggle menu">
           <i class="bi bi-list"></i>
         </button>
+
+        <!-- Right corner mobile logo (hidden on large screens) -->
+        <a href="dashboard.php" class="d-flex d-lg-none align-items-center gap-2 text-decoration-none ms-auto">
+          <div class="sidebar-logo-icon" style="width: 32px; height: 32px; font-size: 16px;"><i class="bi bi-mortarboard-fill"></i></div>
+          <span class="sidebar-logo-text fw-bold" style="font-size: 18px;">SmartUni</span>
+        </a>
       </header>
 
       <div class="page-content">

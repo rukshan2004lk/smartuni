@@ -101,7 +101,7 @@ $isRemembered = !empty($rememberedEmail);
             </form>
 
             <div class="su-account-prompt">
-              Need an account? <a href="register.php">Contact your registrar</a>
+              Need an account? <a href="register.php">Create your Account</a>
             </div>
 
           </div>

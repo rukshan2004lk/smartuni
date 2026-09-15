@@ -73,6 +73,37 @@ if ($today_fac_bk_rs && $today_fac_bk_rs->num_rows > 0) {
         $today_facility_bookings[] = $row;
     }
 }
+
+// 8. Today's Class Schedule (For Student & Lecturer view)
+if (!function_exists('parseTimeToMinutesDashboard')) {
+    function parseTimeToMinutesDashboard($timeStr) {
+        $timeStr = trim($timeStr);
+        if (empty($timeStr)) return 0;
+        $parts = explode(':', $timeStr);
+        $h = intval($parts[0] ?? 0);
+        $m = intval($parts[1] ?? 0);
+        return ($h * 60) + $m;
+    }
+}
+
+$todayDayName  = date("l");
+$todayDayShort = date("D");
+
+$today_tt_rs = Database::search("SELECT * FROM `timetable` WHERE `day_of_week` LIKE '%" . addslashes($todayDayName) . "%' OR `day_of_week` LIKE '%" . addslashes($todayDayShort) . "%' ORDER BY `start_time` ASC");
+$today_timetable = [];
+if ($today_tt_rs && $today_tt_rs->num_rows > 0) {
+    while ($row = $today_tt_rs->fetch_assoc()) {
+        $today_timetable[] = $row;
+    }
+} else {
+    $all_tt_rs = Database::search("SELECT * FROM `timetable` ORDER BY `start_time` ASC LIMIT 5");
+    if ($all_tt_rs && $all_tt_rs->num_rows > 0) {
+        while ($row = $all_tt_rs->fetch_assoc()) {
+            $today_timetable[] = $row;
+        }
+    }
+}
+$currentMin = (intval(date('H')) * 60) + intval(date('i'));
 ?>
 
         <!-- Welcome Banner -->
@@ -224,38 +255,51 @@ if ($today_fac_bk_rs && $today_fac_bk_rs->num_rows > 0) {
                 </div>
 
                 <div class="d-flex flex-column gap-2">
-                  <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 border-start border-4 border-success">
-                    <div class="d-flex align-items-center gap-3">
-                      <span class="fw-bold text-dark small">09:00 - 10:30 AM</span>
-                      <div>
-                        <div class="fw-bold text-dark">CS301 Data Structures &amp; Algorithms</div>
-                        <div class="text-muted small">Turing Hall 204</div>
-                      </div>
+                  <?php if (empty($today_timetable)): ?>
+                    <div class="p-3 bg-light rounded-3 text-center text-muted small">
+                      <i class="bi bi-calendar-x me-1"></i> No lectures scheduled for today (<?= date('l') ?>).
+                      <a href="timetable.php" class="text-primary fw-semibold ms-1">View Full Timetable</a>
                     </div>
-                    <span class="su-badge su-badge-green badge bg-success-subtle text-success">In Progress</span>
-                  </div>
+                  <?php else: ?>
+                    <?php foreach ($today_timetable as $tt): ?>
+                      <?php
+                        $startMin = parseTimeToMinutesDashboard($tt['start_time']);
+                        $endMin   = parseTimeToMinutesDashboard($tt['end_time']);
 
-                  <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                      <span class="fw-bold text-secondary small">01:00 - 02:30 PM</span>
-                      <div>
-                        <div class="fw-bold text-dark">Design Systems &amp; UX Engineering</div>
-                        <div class="text-muted small">Media Studio B</div>
-                      </div>
-                    </div>
-                    <span class="su-badge su-badge-gray badge bg-secondary-subtle text-secondary">Upcoming</span>
-                  </div>
+                        $startTimeDisp = date("h:i A", strtotime($tt['start_time']));
+                        $endTimeDisp   = date("h:i A", strtotime($tt['end_time']));
+                        $timeRangeStr  = $startTimeDisp . " - " . $endTimeDisp;
 
-                  <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                      <span class="fw-bold text-secondary small">03:30 - 05:00 PM</span>
-                      <div>
-                        <div class="fw-bold text-dark">Web Application Architecture</div>
-                        <div class="text-muted small">Study Lab 12</div>
+                        $statusBadge = '';
+                        $borderClass = '';
+
+                        if ($currentMin >= $startMin && $currentMin <= $endMin) {
+                            $borderClass = 'border-start border-4 border-success';
+                            $statusBadge = '<span class="su-badge su-badge-green badge bg-success-subtle text-success">In Progress</span>';
+                        } else if ($currentMin < $startMin) {
+                            $borderClass = 'border-start border-4 border-primary';
+                            $statusBadge = '<span class="su-badge su-badge-indigo badge bg-primary-subtle text-primary">Upcoming</span>';
+                        } else {
+                            $borderClass = 'border-start border-4 border-secondary';
+                            $statusBadge = '<span class="su-badge su-badge-gray badge bg-secondary-subtle text-secondary">Completed</span>';
+                        }
+                      ?>
+                      <div class="p-3 bg-light rounded-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 <?= $borderClass ?>">
+                        <div class="d-flex align-items-center gap-3">
+                          <span class="fw-bold text-dark small" style="min-width: 120px;"><?= htmlspecialchars($timeRangeStr) ?></span>
+                          <div>
+                            <div class="fw-bold text-dark"><?= htmlspecialchars($tt['course_code']) ?> - <?= htmlspecialchars($tt['course_name']) ?></div>
+                            <?php if (!empty($tt['location'])): ?>
+                              <div class="text-muted small"><i class="bi bi-geo-alt-fill text-primary me-1"></i><?= htmlspecialchars($tt['location']) ?></div>
+                            <?php else: ?>
+                              <div class="text-muted small"><i class="bi bi-calendar-event me-1"></i><?= htmlspecialchars($tt['day_of_week']) ?></div>
+                            <?php endif; ?>
+                          </div>
+                        </div>
+                        <?= $statusBadge ?>
                       </div>
-                    </div>
-                    <span class="su-badge su-badge-gray badge bg-secondary-subtle text-secondary">Upcoming</span>
-                  </div>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
                 </div>
               </div>
             <?php endif; ?>

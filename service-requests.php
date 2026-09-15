@@ -51,11 +51,10 @@ if ($sr_rs && $sr_rs->num_rows > 0) {
 // Available statuses for update
 $status_options = [
     11 => 'Submitted',
+    5  => 'Under Review',
     12 => 'In Progress',
     13 => 'Resolved',
-    5  => 'Under Maintenance',
-    6  => 'Closed',
-    9  => 'Rejected'
+    9 => 'Rejected'
 ];
 ?>
 

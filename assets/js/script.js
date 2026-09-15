@@ -245,7 +245,7 @@ function openEditModal(entry) {
   document.getElementById("editTtId").value = entry.id;
   document.getElementById("editTtCourseCode").value = entry.course_code || "";
   document.getElementById("editTtCourseTitle").value = entry.course_name || "";
-  document.getElementById("editTtInstructor").value = entry.lecturer_name || "";
+  document.getElementById("editTtLocation").value = entry.location || "";
   document.getElementById("editTtDay").value = entry.day_of_week || "Monday";
   document.getElementById("editTtStartTime").value = entry.start_time || "08:30";
   document.getElementById("editTtEndTime").value = entry.end_time || "09:30";
@@ -257,7 +257,7 @@ function openEditModal(entry) {
 function addTimetable() {
   const courseCode   = document.getElementById("ttCourseCode").value.trim();
   const courseName   = document.getElementById("ttCourseTitle").value.trim();
-  const lecturerName = document.getElementById("ttInstructor").value.trim();
+  const location     = document.getElementById("ttLocation").value.trim();
   const dayOfWeek    = document.getElementById("ttDay").value;
   const startTime    = document.getElementById("ttStartTime").value;
   const endTime      = document.getElementById("ttEndTime").value;
@@ -306,7 +306,7 @@ function addTimetable() {
   const form = new FormData();
   form.append("course_code", courseCode);
   form.append("course_name", courseName);
-  form.append("lecturer_name", lecturerName);
+  form.append("location", location);
   form.append("day_of_week", dayOfWeek);
   form.append("start_time", startTime);
   form.append("end_time", endTime);
@@ -320,10 +320,13 @@ function addTimetable() {
           icon: "success",
           title: "Success!",
           text: "Timetable entry added successfully!",
-          timer: 1500,
-          showConfirmButton: false
+          timer: 1200,
+          showConfirmButton: false,
+          willClose: () => {
+            window.location.reload();
+          }
         }).then(() => {
-          location.reload();
+          window.location.reload();
         });
       } else {
         Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
@@ -338,7 +341,7 @@ function updateTimetable() {
   const id           = document.getElementById("editTtId").value;
   const courseCode   = document.getElementById("editTtCourseCode").value.trim();
   const courseName   = document.getElementById("editTtCourseTitle").value.trim();
-  const lecturerName = document.getElementById("editTtInstructor").value.trim();
+  const location     = document.getElementById("editTtLocation").value.trim();
   const dayOfWeek    = document.getElementById("editTtDay").value;
   const startTime    = document.getElementById("editTtStartTime").value;
   const endTime      = document.getElementById("editTtEndTime").value;
@@ -392,7 +395,7 @@ function updateTimetable() {
   form.append("id", id);
   form.append("course_code", courseCode);
   form.append("course_name", courseName);
-  form.append("lecturer_name", lecturerName);
+  form.append("location", location);
   form.append("day_of_week", dayOfWeek);
   form.append("start_time", startTime);
   form.append("end_time", endTime);
@@ -406,10 +409,13 @@ function updateTimetable() {
           icon: "success",
           title: "Updated!",
           text: "Timetable entry updated successfully!",
-          timer: 1500,
-          showConfirmButton: false
+          timer: 1200,
+          showConfirmButton: false,
+          willClose: () => {
+            window.location.reload();
+          }
         }).then(() => {
-          location.reload();
+          window.location.reload();
         });
       } else {
         Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
@@ -450,10 +456,13 @@ function deleteTimetable() {
               icon: "success",
               title: "Deleted!",
               text: "Timetable entry deleted successfully!",
-              timer: 1500,
-              showConfirmButton: false
+              timer: 1200,
+              showConfirmButton: false,
+              willClose: () => {
+                window.location.reload();
+              }
             }).then(() => {
-              location.reload();
+              window.location.reload();
             });
           } else {
             Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });

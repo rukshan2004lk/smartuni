@@ -2,15 +2,14 @@
 session_start();
 require_once "../includes/connection.php";
 
-$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
-if ($userRole !== 3) {
-    echo "Unauthorized: Only administrators can modify timetable entries.";
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    echo "Unauthorized: Please sign in to modify timetable entries.";
     exit();
 }
 
 $course_code   = trim($_POST["course_code"] ?? "");
 $course_name   = trim($_POST["course_name"] ?? "");
-$lecturer_name = trim($_POST["lecturer_name"] ?? "");
+$location      = trim($_POST["location"] ?? "");
 $day_of_week   = trim($_POST["day_of_week"] ?? "");
 $start_time    = trim($_POST["start_time"] ?? "");
 $end_time      = trim($_POST["end_time"] ?? "");
@@ -47,9 +46,9 @@ if (empty($course_code)) {
     echo "Error: Cannot schedule lectures during the Lunch Interval (12:30 PM - 01:30 PM).";
 } else {
     Database::iud("INSERT INTO `timetable` 
-        (`course_name`, `course_code`, `lecturer_name`, `day_of_week`, `start_time`, `end_time`, `status_id`) 
+        (`course_name`, `course_code`, `location`, `day_of_week`, `start_time`, `end_time`) 
         VALUES 
-        ('" . addslashes($course_name) . "', '" . addslashes($course_code) . "', '" . addslashes($lecturer_name) . "', '" . addslashes($day_of_week) . "', '" . addslashes($start_time) . "', '" . addslashes($end_time) . "', '1')");
+        ('" . addslashes($course_name) . "', '" . addslashes($course_code) . "', '" . addslashes($location) . "', '" . addslashes($day_of_week) . "', '" . addslashes($start_time) . "', '" . addslashes($end_time) . "')");
 
     echo "success";
 }

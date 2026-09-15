@@ -81,33 +81,56 @@ if ($statusId == 13 || $statusId == 8 || $statusId == 2) {
           </div>
 
           <!-- Progress Stepper -->
+          <?php
+            // Stepper progression logic based on your IDs:
+            // 11 = Submitted, 5 = Under Review, 12 = In Progress, 13 = Resolved
+            $isSubmitted   = true; // Step 1 is always completed
+            $isUnderReview = in_array($statusId, [5, 12, 13]);
+            $isInProgress  = in_array($statusId, [12, 13]);
+            $isResolved    = ($statusId == 13);
+
+            // Progress bar width
+            $stepWidth = '0%';
+            if ($statusId == 5)  $stepWidth = '33%';
+            if ($statusId == 12) $stepWidth = '66%';
+            if ($statusId == 13) $stepWidth = '100%';
+          ?>
+
           <div class="bg-white border rounded-4 p-4 shadow-sm mb-4">
             <div class="su-stepper">
               <div class="su-stepper-line"></div>
-              <div class="su-stepper-line-active" style="width: <?= ($statusId == 13) ? '100%' : (($statusId == 12) ? '70%' : '25%') ?>;"></div>
+              <div class="su-stepper-line-active" style="width: <?= $stepWidth ?>;"></div>
 
+              <!-- Step 1: Submitted -->
               <div class="su-step-item completed">
                 <div class="su-step-icon"><i class="bi bi-check"></i></div>
                 <div class="su-step-title">Submitted</div>
                 <div class="su-step-time"><?= date("g:i A", strtotime($sr['created_at'] ?? 'now')) ?></div>
               </div>
 
-              <div class="su-step-item <?= ($statusId == 12 || $statusId == 13) ? 'completed' : 'active' ?>">
-                <div class="su-step-icon"><?= ($statusId == 12 || $statusId == 13) ? '<i class="bi bi-check"></i>' : '●' ?></div>
-                <div class="su-step-title">Under Review</div>
-                <div class="su-step-time">Operations Desk</div>
+              <!-- Step 2: Under Review -->
+              <div class="su-step-item <?= ($statusId == 5) ? 'active' : ($isUnderReview ? 'completed' : '') ?>">
+                <div class="su-step-icon">
+                  <?= ($isUnderReview && $statusId != 5) ? '<i class="bi bi-check"></i>' : (($statusId == 5) ? '●' : '') ?>
+                </div>
+                <div class="su-step-title <?= ($statusId == 5) ? 'text-primary fw-bold' : '' ?>">Under Review</div>
+                <div class="su-step-time"><?= $isUnderReview ? 'Operations Desk' : 'Pending' ?></div>
               </div>
 
-              <div class="su-step-item <?= ($statusId == 12 || $statusId == 13) ? 'active' : '' ?>">
-                <div class="su-step-icon"><?= ($statusId == 13) ? '<i class="bi bi-check"></i>' : (($statusId == 12) ? '●' : '') ?></div>
+              <!-- Step 3: In Progress -->
+              <div class="su-step-item <?= ($statusId == 12) ? 'active' : ($isResolved ? 'completed' : '') ?>">
+                <div class="su-step-icon">
+                  <?= $isResolved ? '<i class="bi bi-check"></i>' : (($statusId == 12) ? '●' : '') ?>
+                </div>
                 <div class="su-step-title <?= ($statusId == 12) ? 'text-primary fw-bold' : '' ?>">In Progress</div>
-                <div class="su-step-time"><?= ($statusId == 12) ? 'Technician Dispatched' : 'Pending' ?></div>
+                <div class="su-step-time"><?= ($statusId == 12) ? 'Technician Dispatched' : ($isResolved ? 'Completed' : 'Pending') ?></div>
               </div>
 
-              <div class="su-step-item <?= ($statusId == 13) ? 'completed' : '' ?>">
-                <div class="su-step-icon"><?= ($statusId == 13) ? '<i class="bi bi-check"></i>' : '' ?></div>
-                <div class="su-step-title <?= ($statusId == 13) ? 'text-success fw-bold' : 'text-muted' ?>">Resolved</div>
-                <div class="su-step-time"><?= ($statusId == 13) ? 'Completed' : 'Pending' ?></div>
+              <!-- Step 4: Resolved -->
+              <div class="su-step-item <?= $isResolved ? 'completed' : '' ?>">
+                <div class="su-step-icon"><?= $isResolved ? '<i class="bi bi-check"></i>' : '' ?></div>
+                <div class="su-step-title <?= $isResolved ? 'text-success fw-bold' : 'text-muted' ?>">Resolved</div>
+                <div class="su-step-time"><?= $isResolved ? 'Completed' : 'Pending' ?></div>
               </div>
             </div>
           </div>
@@ -155,12 +178,10 @@ if ($statusId == 13 || $statusId == 8 || $statusId == 2) {
                 <div class="col-12 col-md-6">
                   <label class="su-label">Select New Processing Status</label>
                   <select class="form-select su-input" id="adminDetailStatusSelect">
-                    <option value="11" <?= ($statusId === 11) ? 'selected' : '' ?>>Submitted (New Request)</option>
-                    <option value="12" <?= ($statusId === 12) ? 'selected' : '' ?>>In Progress (Technician Dispatched)</option>
-                    <option value="13" <?= ($statusId === 13) ? 'selected' : '' ?>>Resolved (Issue Fixed)</option>
-                    <option value="5"  <?= ($statusId === 5)  ? 'selected' : '' ?>>Under Maintenance</option>
-                    <option value="6"  <?= ($statusId === 6)  ? 'selected' : '' ?>>Closed</option>
-                    <option value="9"  <?= ($statusId === 9)  ? 'selected' : '' ?>>Rejected</option>
+                    <option value="11" <?= ($statusId === 11) ? 'selected' : '' ?>>Submitted</option>
+                    <option value="5"  <?= ($statusId === 5)  ? 'selected' : '' ?>>Under Review</option>
+                    <option value="12" <?= ($statusId === 12) ? 'selected' : '' ?>>In Progress</option>
+                    <option value="13" <?= ($statusId === 13) ? 'selected' : '' ?>>Resolved</option>
                   </select>
                 </div>
                 <div class="col-12 col-md-6 pt-md-4">

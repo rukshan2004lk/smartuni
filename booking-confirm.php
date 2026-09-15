@@ -98,7 +98,8 @@ $defaultEndTime = date('H:i', strtotime($facStartTime . ' + 1 hour'));
             <div class="mb-4">
               <label class="su-label">Purpose of Booking</label>
               <select class="form-select su-input" id="purpose">
-                <option value="Group Study / Project Prep" selected>Group Study / Project Prep</option>
+                  <option value="Group Study / Project Prep" selected>Extra Lecture</option>
+                <option value="Group Study / Project Prep">Group Study / Project Prep</option>
                 <option value="Individual Focused Work">Individual Focused Work</option>
                 <option value="Club / Society Planning">Club / Society Planning</option>
                 <option value="TA / Faculty Office Hours">TA / Faculty Office Hours</option>

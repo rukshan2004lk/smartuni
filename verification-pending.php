@@ -6,7 +6,18 @@ require_once "includes/connection.php";
 
 $user = $_SESSION['user'] ?? null;
 
-// If user is already verified (status_id == 2), redirect to dashboard
+// Re-query database to check for real-time status updates by Admin/Staff
+if ($user && isset($user['id'])) {
+    $userId = intval($user['id']);
+    $user_rs = Database::search("SELECT * FROM `users` WHERE `id` = '$userId'");
+    if ($user_rs && $user_rs->num_rows > 0) {
+        $freshUser = $user_rs->fetch_assoc();
+        $_SESSION['user'] = $freshUser;
+        $user = $freshUser;
+    }
+}
+
+// If user is verified / active (status_id == 2), redirect to dashboard
 if ($user && intval($user['status_id'] ?? 1) === 2) {
     header("Location: dashboard.php");
     exit();
@@ -35,13 +46,10 @@ $regNumber = $user['reg_number'] ?? 'N/A';
     <div class="d-flex align-items-center gap-3">
       <a href="index.php" class="su-brand-mark">
         <span class="fw-bold fs-5 tracking-tight text-dark"><i class="bi bi-mortarboard-fill me-2 text-primary"></i>SmartUni</span>
-        <span class="text-muted border-start ps-2 ms-2 small">CAMPUS OS</span>
+  
       </a>
     </div>
-    <div class="d-flex align-items-center gap-4">
-      <a href="contacts.php" class="su-nav-link text-secondary">Campus Support</a>
-      <a href="api/logoutProcess.php" class="btn btn-sm btn-su-outline">Sign Out</a>
-    </div>
+
   </header>
 
   <main class="flex-fill d-flex align-items-center justify-content-center p-4">
@@ -78,7 +86,18 @@ $regNumber = $user['reg_number'] ?? 'N/A';
           <i class="bi bi-arrow-clockwise me-1"></i> Check Status / Refresh
         </button>
         <a href="api/logoutProcess.php" class="btn btn-su-outline px-4 py-2">Sign Out</a>
-        <a href="contacts.php" class="btn btn-su-outline px-3 py-2">Contact IT Support</a>
+        <a class="btn btn-su-outline px-3 py-2"href="javascript:void(0)" 
+     class="text-secondary text-decoration-none" 
+     style="cursor: pointer;"
+     onclick="Swal.fire({
+       title: 'Campus IT Helpdesk',
+       html: 'Contact Number:<br><strong style=\'font-size: 1.25rem;\'><a href=\'tel:0713218157\' class=\'text-primary text-decoration-none\'>071 32 18 157</a></strong>',
+       icon: 'info',
+       confirmButtonText: 'Close',
+       confirmButtonColor: '#0d6efd'
+     });">
+    Campus IT Helpdesk
+  </a>
       </div>
 
     </div>
@@ -98,7 +117,7 @@ $regNumber = $user['reg_number'] ?? 'N/A';
       </div>
     </div>
   </footer>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/script.js"></script>
 </body>

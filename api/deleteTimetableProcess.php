@@ -2,9 +2,8 @@
 session_start();
 require_once "../includes/connection.php";
 
-$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
-if ($userRole !== 3) {
-    echo "Unauthorized: Only administrators can delete timetable entries.";
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    echo "Unauthorized: Please sign in to delete timetable entries.";
     exit();
 }
 
