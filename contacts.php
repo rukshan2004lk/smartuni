@@ -212,12 +212,14 @@ require_once "includes/header.php";
 
         <script>
           function filterContacts() {
-            const input = document.getElementById('contactSearchInput').value.toLowerCase();
+            const searchInput = document.getElementById('contactSearchInput');
+            if (!searchInput) return;
+            const input = searchInput.value.toLowerCase().trim();
             const cards = document.querySelectorAll('.contact-card');
             
             cards.forEach(card => {
               const text = card.textContent.toLowerCase();
-              if (text.includes(input)) {
+              if (!input || text.includes(input)) {
                 card.style.display = 'block';
               } else {
                 card.style.display = 'none';

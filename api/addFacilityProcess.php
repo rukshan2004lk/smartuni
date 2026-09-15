@@ -2,6 +2,12 @@
 session_start();
 require_once "../includes/connection.php";
 
+$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
+if ($userRole !== 3) {
+    echo "Unauthorized: Only administrators can add facilities.";
+    exit();
+}
+
 $name        = trim($_POST["name"] ?? "");
 $category    = trim($_POST["category"] ?? "");
 $capacity    = intval($_POST["capacity"] ?? 0);

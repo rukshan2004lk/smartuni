@@ -2,7 +2,12 @@
 session_start();
 require_once __DIR__ . "/../includes/connection.php";
 
-$userId      = $_SESSION["user"]["id"] ?? 1;
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    echo "Unauthorized: Please sign in to submit a booking.";
+    exit();
+}
+
+$userId      = intval($_SESSION["user"]["id"]);
 $userRole    = intval($_SESSION["user"]["role_id"] ?? 1);
 
 if ($userRole !== 2) {

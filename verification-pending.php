@@ -40,7 +40,7 @@ $regNumber = $user['reg_number'] ?? 'N/A';
     </div>
     <div class="d-flex align-items-center gap-4">
       <a href="contacts.php" class="su-nav-link text-secondary">Campus Support</a>
-      <a href="index.php" class="btn btn-sm btn-su-outline">Sign Out</a>
+      <a href="api/logoutProcess.php" class="btn btn-sm btn-su-outline">Sign Out</a>
     </div>
   </header>
 
@@ -77,7 +77,7 @@ $regNumber = $user['reg_number'] ?? 'N/A';
         <button class="btn btn-su-indigo px-4 py-2" onclick="window.location.reload();">
           <i class="bi bi-arrow-clockwise me-1"></i> Check Status / Refresh
         </button>
-        <a href="index.php" class="btn btn-su-outline px-4 py-2">Return to Sign In</a>
+        <a href="api/logoutProcess.php" class="btn btn-su-outline px-4 py-2">Sign Out</a>
         <a href="contacts.php" class="btn btn-su-outline px-3 py-2">Contact IT Support</a>
       </div>
 

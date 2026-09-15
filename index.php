@@ -1,10 +1,18 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+// Redirect logged-in users directly to dashboard
+if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
+    header("Location: dashboard.php");
+    exit();
+}
 
-
-
+$rememberedEmail = $_COOKIE['email'] ?? '';
+$rememberedPassword = $_COOKIE['password'] ?? '';
+$isRemembered = !empty($rememberedEmail);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -52,7 +60,7 @@
             <form id="loginForm">
               <div class="su-form-group">
                 <div class="form-floating">
-                  <input type="email" class="form-control" id="campusEmailInput" placeholder="mail@tec.rjt.ac.lk" required autocomplete="username" />
+                  <input type="email" class="form-control" id="campusEmailInput" placeholder="mail@tec.rjt.ac.lk" value="<?= htmlspecialchars($rememberedEmail) ?>" required autocomplete="username" />
                   <label for="email">EMAIL</label>
                 </div>
               </div>
@@ -63,7 +71,7 @@
                   <a href="#" class="su-forgot-link">Forgot password?</a>
                 </div>
                 <div class="su-password-wrapper">
-                  <input type="password" class="form-control su-input w-100 pe-5" id="passwordInput" placeholder="••••••••••••" value="Password123" required />
+                  <input type="password" class="form-control su-input w-100 pe-5" id="passwordInput" placeholder="••••••••••••" value="<?= htmlspecialchars($rememberedPassword) ?>" required />
                   <button type="button" class="su-password-toggle" id="togglePasswordBtn" aria-label="Toggle password visibility">
                     <i class="bi bi-eye" id="togglePasswordIcon"></i>
                   </button>
@@ -72,7 +80,7 @@
 
               <div class="su-remember-row">
                 <div class="form-check d-flex align-items-center gap-2">
-                  <input class="form-check-input" type="checkbox" id="rememberMeCheck" checked />
+                  <input class="form-check-input" type="checkbox" id="rememberMeCheck" <?= $isRemembered ? 'checked' : '' ?> />
                   <label class="form-check-label" for="rememberMeCheck">Remember this device</label>
                 </div>
                 <div class="su-encrypted-badge">

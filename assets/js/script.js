@@ -1358,6 +1358,132 @@ function searchUsersTable() {
   });
 }
 
+/* ==========================================
+   USER MANAGEMENT FUNCTIONS (users-list.php)
+   ========================================== */
+function filterUserRows(role, btn) {
+  const rows = document.querySelectorAll('.user-table-row');
+  const buttons = document.querySelectorAll('.user-filter-btn');
+
+  buttons.forEach(b => {
+    b.classList.remove('btn-su-indigo');
+    b.classList.add('btn-su-outline');
+  });
+  if (btn) {
+    btn.classList.remove('btn-su-outline');
+    btn.classList.add('btn-su-indigo');
+  }
+
+  rows.forEach(row => {
+    const rowRole = row.getAttribute('data-role');
+    if (role === 'All' || (rowRole && rowRole.toLowerCase() === role.toLowerCase())) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function searchUsersTable() {
+  const inputEl = document.getElementById('userSearchInput');
+  if (!inputEl) return;
+  const input = inputEl.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.user-table-row');
+
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (!input || text.includes(input)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function openEditUserModal(userObj) {
+  const modalEl = document.getElementById('editUserModal');
+  if (!modalEl || !userObj) return;
+
+  document.getElementById('editUserId').value = userObj.id || '';
+  document.getElementById('editUserFname').value = userObj.fname || '';
+  document.getElementById('editUserLname').value = userObj.lname || '';
+  document.getElementById('editUserEmail').value = userObj.email || '';
+  document.getElementById('editUserReg').value = userObj.reg_number || '';
+  document.getElementById('editUserMobile').value = userObj.mobile || '';
+  document.getElementById('editUserRole').value = userObj.role_id || '1';
+  document.getElementById('editUserStatus').value = userObj.status_id || '1';
+
+  const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+  bsModal.show();
+}
+
+function saveUserEdit() {
+  const userId = document.getElementById('editUserId').value;
+  const fname = document.getElementById('editUserFname').value.trim();
+  const lname = document.getElementById('editUserLname').value.trim();
+  const regNumber = document.getElementById('editUserReg').value.trim();
+  const mobile = document.getElementById('editUserMobile').value.trim();
+  const roleId = document.getElementById('editUserRole').value;
+  const statusId = document.getElementById('editUserStatus').value;
+
+  if (!fname || !lname) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ icon: 'warning', title: 'Missing Information', text: 'First name and Last name are required.', confirmButtonColor: '#4f46e5' });
+    } else {
+      alert('First name and Last name are required.');
+    }
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('user_id', userId);
+  formData.append('fname', fname);
+  formData.append('lname', lname);
+  formData.append('reg_number', regNumber);
+  formData.append('mobile', mobile);
+  formData.append('role_id', roleId);
+  formData.append('status_id', statusId);
+
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        const res = JSON.parse(xhr.responseText);
+        if (res.status === 'success') {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'User Updated!',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.reload();
+            });
+          } else {
+            alert(res.message);
+            window.location.reload();
+          }
+        } else {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Error', text: res.message, confirmButtonColor: '#4f46e5' });
+          } else {
+            alert(res.message);
+          }
+        }
+      } catch (e) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to process server response.', confirmButtonColor: '#4f46e5' });
+        } else {
+          alert('Failed to process server response.');
+        }
+      }
+    }
+  };
+  xhr.open('POST', 'api/updateUserProcess.php', true);
+  xhr.send(formData);
+}
+
 // ----------------------------------------------------
 // Authentication (Login & Register Process Handlers)
 // ----------------------------------------------------
@@ -1506,4 +1632,234 @@ function updateServiceRequestStatus(srId, statusId) {
   };
   xhr.open("POST", "api/updateServiceRequestStatusProcess.php", true);
   xhr.send(form);
+}
+
+/* ==========================================
+   DYNAMIC CALENDAR ENGINE
+   ========================================== */
+let calCurrentDate = new Date();
+let calSelectedDate = null;
+let calEventsData = [];
+
+function initCalendar(events) {
+  calEventsData = events || [];
+  renderSmartCalendar();
+}
+
+function renderSmartCalendar() {
+  const gridEl = document.getElementById("calendarGrid");
+  const monthYearEl = document.getElementById("calMonthYearTitle");
+  if (!gridEl || !monthYearEl) return;
+
+  const year = calCurrentDate.getFullYear();
+  const month = calCurrentDate.getMonth();
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  monthYearEl.textContent = `${monthNames[month]} ${year}`;
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  let html = "";
+
+  // Previous month padding days
+  for (let x = firstDayIndex; x > 0; x--) {
+    const dayNum = prevMonthLastDay - x + 1;
+    html += `<div class="calendar-day-cell other-month"><span class="day-num">${dayNum}</span></div>`;
+  }
+
+  // Current month days
+  for (let day = 1; day <= totalDaysInMonth; day++) {
+    const mStr = String(month + 1).padStart(2, '0');
+    const dStr = String(day).padStart(2, '0');
+    const fullDateStr = `${year}-${mStr}-${dStr}`;
+
+    const isToday = (fullDateStr === todayStr) ? "is-today" : "";
+    const isSelected = (fullDateStr === calSelectedDate) ? "is-selected" : "";
+
+    // Find events for this date
+    const dayEvents = calEventsData.filter(ev => ev.date === fullDateStr);
+    
+    let dotsHtml = "";
+    if (dayEvents.length > 0) {
+      // Get unique categories for this day
+      const categories = [...new Set(dayEvents.map(ev => ev.category || 'Other'))];
+      dotsHtml = `<div class="cal-dots-container">` + 
+        categories.slice(0, 3).map(cat => `<span class="cal-dot cal-dot-${cat}" title="${cat}"></span>`).join("") + 
+        `</div>`;
+    }
+
+    const titleAttr = dayEvents.length > 0 ? `title="${dayEvents.length} event(s) on ${fullDateStr}"` : '';
+
+    html += `
+      <div class="calendar-day-cell ${isToday} ${isSelected}" 
+           ${titleAttr}
+           onclick="onCalendarDayClick('${fullDateStr}')">
+        <span class="day-num">${day}</span>
+        ${dotsHtml}
+      </div>
+    `;
+  }
+
+  // Next month padding days to round up to complete rows of 7
+  const totalCellsSoFar = firstDayIndex + totalDaysInMonth;
+  const nextDays = (totalCellsSoFar % 7 === 0) ? 0 : 7 - (totalCellsSoFar % 7);
+  for (let j = 1; j <= nextDays; j++) {
+    html += `<div class="calendar-day-cell other-month"><span class="day-num">${j}</span></div>`;
+  }
+
+  gridEl.innerHTML = html;
+}
+
+function changeCalMonth(delta) {
+  calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+  renderSmartCalendar();
+}
+
+function resetCalToday() {
+  calCurrentDate = new Date();
+  calSelectedDate = null;
+  renderSmartCalendar();
+  clearDateFilter();
+}
+
+function onCalendarDayClick(dateStr) {
+  if (calSelectedDate === dateStr) {
+    // Unselect
+    calSelectedDate = null;
+    clearDateFilter();
+  } else {
+    calSelectedDate = dateStr;
+    filterEventsByDate(dateStr);
+  }
+  renderSmartCalendar();
+}
+
+function filterEventsByDate(dateStr) {
+  const cards = document.querySelectorAll('.event-card');
+  const banner = document.getElementById('dateFilterBanner');
+  const dateText = document.getElementById('selectedDateText');
+
+  let matchCount = 0;
+  cards.forEach(card => {
+    const cardDate = card.getAttribute('data-date');
+    if (cardDate === dateStr) {
+      card.style.display = 'block';
+      matchCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  if (banner && dateText) {
+    const parts = dateStr.split('-');
+    let formatted = dateStr;
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+    dateText.textContent = `${formatted} (${matchCount} event${matchCount === 1 ? '' : 's'})`;
+    banner.classList.remove('d-none');
+  }
+
+  // Pre-fill date in event modal input if opened
+  const dateInput = document.getElementById('eventDate');
+  if (dateInput) {
+    dateInput.value = dateStr;
+  }
+}
+
+function clearDateFilter() {
+  calSelectedDate = null;
+  const banner = document.getElementById('dateFilterBanner');
+  if (banner) {
+    banner.classList.add('d-none');
+  }
+  
+  // Show events based on active category filter button
+  const activeCategoryBtn = document.querySelector('.category-filter-btn.btn-su-indigo');
+  if (activeCategoryBtn) {
+    activeCategoryBtn.click();
+  } else {
+    const cards = document.querySelectorAll('.event-card');
+    cards.forEach(card => card.style.display = 'block');
+  }
+  renderSmartCalendar();
+}
+
+/* ==========================================
+   SERVICE REQUESTS LIVE FILTERING & SEARCH
+   ========================================== */
+let activeSrStatusFilter = 'ALL';
+
+function filterServiceRequestsByStatus(statusKey, btn) {
+  activeSrStatusFilter = statusKey;
+  
+  // Update button active states
+  const btns = document.querySelectorAll('.sr-filter-tab');
+  btns.forEach(b => {
+    b.classList.remove('btn-su-indigo', 'active');
+    b.classList.add('btn-su-outline');
+  });
+  if (btn) {
+    btn.classList.remove('btn-su-outline');
+    btn.classList.add('btn-su-indigo', 'active');
+  }
+
+  applySrFilters();
+}
+
+function applySrFilters() {
+  const searchInput = document.getElementById('srSearchInput');
+  const prioritySelect = document.getElementById('srPrioritySelect');
+  const cards = document.querySelectorAll('.sr-card-item');
+  const emptyState = document.getElementById('srEmptyState');
+
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const priority = prioritySelect ? prioritySelect.value : 'ALL';
+
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const cardStatus = card.getAttribute('data-status-group') || 'ALL';
+    const cardPriority = card.getAttribute('data-priority') || 'ALL';
+    const cardText = card.textContent.toLowerCase();
+
+    const matchesStatus = (activeSrStatusFilter === 'ALL' || cardStatus === activeSrStatusFilter);
+    const matchesPriority = (priority === 'ALL' || cardPriority === priority);
+    const matchesQuery = (!query || cardText.includes(query));
+
+    if (matchesStatus && matchesPriority && matchesQuery) {
+      card.style.display = 'block';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  if (emptyState) {
+    if (visibleCount === 0 && cards.length > 0) {
+      emptyState.classList.remove('d-none');
+    } else {
+      emptyState.classList.add('d-none');
+    }
+  }
+}
+
+function resetSrFilters() {
+  const searchInput = document.getElementById('srSearchInput');
+  const prioritySelect = document.getElementById('srPrioritySelect');
+  if (searchInput) searchInput.value = '';
+  if (prioritySelect) prioritySelect.value = 'ALL';
+  
+  const firstTab = document.querySelector('.sr-filter-tab');
+  filterServiceRequestsByStatus('ALL', firstTab);
 }

@@ -3,7 +3,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$currentUser = $_SESSION['user'] ?? null;
+// Enforce authentication check for portal pages
+if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$currentUser = $_SESSION['user'];
 $currentUserRole = intval($currentUser['role_id'] ?? 1);
 if ($currentUser && intval($currentUser['status_id'] ?? 1) === 1) {
     $activePageFile = basename($_SERVER['PHP_SELF']);
@@ -20,6 +26,7 @@ if (!isset($currentPage)) {
   $currentPage = '';
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,7 +61,7 @@ if (!isset($currentPage)) {
           <?php if ($currentUserRole !== 1): ?>
             <a href="facilities.php" class="sidebar-link <?php echo ($currentPage == 'facilities') ? 'active' : ''; ?>"><i class="bi bi-building"></i> Facilities</a>
           <?php endif; ?>
-          <?php if ($currentUserRole !== 1): ?>
+          <?php if ($currentUserRole === 2 ): ?>
             <a href="my-bookings.php" class="sidebar-link <?php echo ($currentPage == 'my-bookings') ? 'active' : ''; ?>"><i class="bi bi-calendar-check"></i> My Bookings</a>
           <?php endif; ?>
           <a href="service-requests.php" class="sidebar-link <?php echo ($currentPage == 'service-requests') ? 'active' : ''; ?>"><i class="bi bi-tools"></i> Service Requests</a>
@@ -99,7 +106,7 @@ if (!isset($currentPage)) {
           <a href="settings.php" class="user-action-btn" title="Settings" aria-label="Settings">
             <i class="bi bi-gear"></i>
           </a>
-          <a href="index.php" class="user-action-btn text-danger" title="Logout" aria-label="Logout">
+          <a href="api/logoutProcess.php" class="user-action-btn text-danger" title="Logout" aria-label="Logout">
             <i class="bi bi-box-arrow-right"></i>
           </a>
         </div>

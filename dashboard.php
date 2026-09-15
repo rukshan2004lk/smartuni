@@ -81,13 +81,7 @@ if ($today_fac_bk_rs && $today_fac_bk_rs->num_rows > 0) {
             <h1 class="fw-bold fs-3 mb-1">Welcome back, <?= $userName ?></h1>
             <p class="text-secondary small mb-0"><?= date("l, F j, Y") ?></p>
           </div>
-          <?php if ($roleId === 3): ?>
-            <span class="su-badge su-badge-green">● Admin Portal Active</span>
-          <?php elseif ($roleId === 2): ?>
-            <span class="su-badge su-badge-amber">● Faculty / Lecturer Portal</span>
-          <?php else: ?>
-            <span class="su-badge su-badge-purple">● Student Workspace</span>
-          <?php endif; ?>
+        
         </div>
 
         <!-- Stat Cards Grid -->
