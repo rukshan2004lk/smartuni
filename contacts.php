@@ -1,4 +1,5 @@
 <?php
+require_once "includes/connection.php";
 $pageTitle = "SmartUni Portal - Campus Contacts";
 $currentPage = "contacts";
 require_once "includes/header.php";

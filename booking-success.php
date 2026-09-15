@@ -75,7 +75,7 @@ if ($statusId == 8) {
             <i class="bi bi-check-lg fs-1"></i>
           </div>
 
-          <h2 class="fw-bold text-dark mb-1">Booking Confirmed</h2>
+          <h2 class="fw-bold text-dark mb-1">Booking Success</h2>
           <p class="text-secondary small mb-4">Ref #<strong><?= htmlspecialchars($bookingRef) ?></strong></p>
 
           <div class="bg-white border rounded-4 p-4 text-start shadow-sm mb-4">

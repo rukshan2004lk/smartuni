@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once __DIR__ . "/connection.php";
 
 // Enforce authentication check for portal pages
 if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
