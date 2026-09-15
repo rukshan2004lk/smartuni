@@ -38,7 +38,7 @@ if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 exit();
             }
 
-            if ($rememberme === "true" || $rememberme === true || $rememberme === "1") {
+            if ($rememberme === "true" || $rememberme === true || $rememberme === "1" || $rememberme === "on") {
                 setcookie("email", $email, time() + (86400 * 30), "/");
                 setcookie("password", $password, time() + (86400 * 30), "/");
             } else {

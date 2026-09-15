@@ -79,30 +79,56 @@ if ($events_rs && $events_rs->num_rows > 0) {
 
         
 
-        <div class="bg-white border rounded-4 p-4 shadow-sm mb-4">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-primary"></i>Calendar Overview</h5>
+        <div class="calendar-card mb-4">
+          <div class="calendar-header-nav">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-calendar-week fs-4 text-primary"></i>
+              <h5 class="cal-title-month mb-0" id="calMonthYearTitle">Loading Calendar...</h5>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-sm btn-su-outline px-3" onclick="resetCalToday()">Today</button>
+              <button type="button" class="cal-nav-btn" onclick="changeCalMonth(-1)" title="Previous Month"><i class="bi bi-chevron-left"></i></button>
+              <button type="button" class="cal-nav-btn" onclick="changeCalMonth(1)" title="Next Month"><i class="bi bi-chevron-right"></i></button>
+            </div>
           </div>
 
-          <div class="calendar-grid text-muted small fw-bold mb-2">
-            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+          <div class="calendar-grid mb-2">
+            <div class="calendar-day-header">Su</div>
+            <div class="calendar-day-header">Mo</div>
+            <div class="calendar-day-header">Tu</div>
+            <div class="calendar-day-header">We</div>
+            <div class="calendar-day-header">Th</div>
+            <div class="calendar-day-header">Fr</div>
+            <div class="calendar-day-header">Sa</div>
           </div>
 
-          <div class="calendar-grid mb-3">
-            <div class="calendar-day text-muted opacity-50">27</div><div class="calendar-day text-muted opacity-50">28</div><div class="calendar-day text-muted opacity-50">29</div><div class="calendar-day text-muted opacity-50">30</div><div class="calendar-day text-muted opacity-50">31</div>
-            <div class="calendar-day">1</div><div class="calendar-day">2</div>
-            <div class="calendar-day">3</div><div class="calendar-day">4</div><div class="calendar-day">5</div><div class="calendar-day">6 <span class="cal-dot bg-danger"></span></div><div class="calendar-day">7</div><div class="calendar-day">8 <span class="cal-dot bg-warning"></span></div><div class="calendar-day">9</div>
-            <div class="calendar-day">10</div><div class="calendar-day">11</div><div class="calendar-day active-day">12</div><div class="calendar-day">13</div><div class="calendar-day">14</div><div class="calendar-day">15 <span class="cal-dot bg-success"></span></div><div class="calendar-day">16</div>
-            <div class="calendar-day">17</div><div class="calendar-day">18 <span class="cal-dot bg-primary"></span></div><div class="calendar-day">19</div><div class="calendar-day">20 <span class="cal-dot bg-success"></span></div><div class="calendar-day">21</div><div class="calendar-day">22</div><div class="calendar-day">23</div>
+          <div class="calendar-grid mb-3" id="calendarGrid">
+            <!-- Rendered dynamically by script.js -->
           </div>
 
-          <div class="d-flex align-items-center gap-4 text-muted small pt-2 border-top">
-            <span><span class="cal-dot bg-primary me-1"></span> Academic</span>
-            <span><span class="cal-dot bg-warning me-1"></span> Facilities</span>
-            <span><span class="cal-dot bg-success me-1"></span> Clubs</span>
-            <span><span class="cal-dot bg-danger me-1"></span> Alert</span>
-            <span><span class="cal-dot bg-info me-1"></span> Other</span>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top">
+            <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
+              <span class="legend-pill"><span class="cal-dot cal-dot-Academic"></span> Academic</span>
+              <span class="legend-pill"><span class="cal-dot cal-dot-Facilities"></span> Facilities</span>
+              <span class="legend-pill"><span class="cal-dot cal-dot-Clubs"></span> Clubs</span>
+              <span class="legend-pill"><span class="cal-dot cal-dot-Alert"></span> Alert</span>
+              <span class="legend-pill"><span class="cal-dot cal-dot-Other"></span> Other</span>
+            </div>
+            <div class="small text-secondary">
+              <i class="bi bi-info-circle me-1"></i> Click any day to filter events scheduled on that date.
+            </div>
           </div>
+        </div>
+
+        <!-- Active Date Filter Banner -->
+        <div id="dateFilterBanner" class="alert alert-primary bg-primary-subtle border-primary-subtle text-primary-emphasis d-flex align-items-center justify-content-between rounded-4 shadow-sm mb-4 d-none">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-funnel-fill text-primary fs-5"></i>
+            <span>Showing events for <strong id="selectedDateText">Selected Date</strong></span>
+          </div>
+          <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="clearDateFilter()">
+            <i class="bi bi-x-circle me-1"></i> Clear Filter
+          </button>
         </div>
 
         <div class="row g-4 mb-4" id="eventsContainer">
@@ -158,7 +184,7 @@ if ($events_rs && $events_rs->num_rows > 0) {
                 $jsLocation = htmlspecialchars(addslashes($ev['location'] ?? ''), ENT_QUOTES);
                 $jsDescription = htmlspecialchars(addslashes($ev['description'] ?? ''), ENT_QUOTES);
               ?>
-              <div class="col-12 col-md-6 col-lg-4 event-card" data-category="<?= $cat ?>">
+              <div class="col-12 col-md-6 col-lg-4 event-card" data-category="<?= $cat ?>" data-date="<?= htmlspecialchars($ev['date']) ?>">
                 <div class="bg-white border rounded-4 p-4 shadow-sm h-100 d-flex flex-column justify-content-between">
                   <div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -265,4 +291,18 @@ if ($events_rs && $events_rs->num_rows > 0) {
           </div>
         </div>
 
-<?php require_once "includes/footer.php"; ?>
+<?php
+$extraJs = '
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const eventsData = ' . json_encode($events_list, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ';
+    if (typeof initCalendar === "function") {
+      initCalendar(eventsData);
+    }
+  });
+</script>
+';
+require_once "includes/footer.php";
+?>
+
+

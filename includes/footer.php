@@ -4,7 +4,7 @@
         <div class="container-fluid px-0 max-w-1400">
           <div class="d-flex align-items-center justify-content-center">
             <small class="text-center text-muted">
-              &copy; 2025 SmartUni, Inc. Developed by IT Students, Faculty of Technology, RUSL
+              &copy; 2026 SmartUni, Inc. Developed by IT Students, Faculty of Technology, RUSL
             </small>
           </div>
         </div>

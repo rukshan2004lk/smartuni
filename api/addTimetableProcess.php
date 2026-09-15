@@ -2,6 +2,12 @@
 session_start();
 require_once "../includes/connection.php";
 
+$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
+if ($userRole !== 3) {
+    echo "Unauthorized: Only administrators can modify timetable entries.";
+    exit();
+}
+
 $course_code   = trim($_POST["course_code"] ?? "");
 $course_name   = trim($_POST["course_name"] ?? "");
 $lecturer_name = trim($_POST["lecturer_name"] ?? "");

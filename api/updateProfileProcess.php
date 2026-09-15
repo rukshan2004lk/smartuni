@@ -5,8 +5,14 @@ require_once "../includes/connection.php";
 
 $res = ["status" => "error", "message" => "An unexpected error occurred."];
 
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    $res["message"] = "Unauthorized: Please log in to update your profile.";
+    echo json_encode($res);
+    exit;
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $userId = $_SESSION['user']['id'] ?? 1;
+    $userId = intval($_SESSION['user']['id']);
 
     $fname  = trim($_POST["fname"] ?? "");
     $lname  = trim($_POST["lname"] ?? "");

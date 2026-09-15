@@ -2,7 +2,12 @@
 session_start();
 require_once __DIR__ . "/../includes/connection.php";
 
-$userId      = $_SESSION["user"]["id"] ?? 1;
+if (!isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    echo "Unauthorized: Please sign in to submit a service request.";
+    exit();
+}
+
+$userId      = intval($_SESSION["user"]["id"]);
 $location    = trim($_POST["location"] ?? "");
 $title       = trim($_POST["title"] ?? "");
 $description = trim($_POST["description"] ?? "");

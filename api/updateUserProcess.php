@@ -1,8 +1,16 @@
 <?php
+session_start();
 header("Content-Type: application/json");
 require_once __DIR__ . "/../includes/connection.php";
 
 $res = ["status" => "error", "message" => "An unexpected error occurred."];
+
+$userRole = intval($_SESSION["user"]["role_id"] ?? 0);
+if ($userRole !== 3) {
+    $res["message"] = "Unauthorized: Only administrators can modify user profiles and roles.";
+    echo json_encode($res);
+    exit;
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $userId    = intval($_POST["user_id"] ?? 0);

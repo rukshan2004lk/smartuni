@@ -159,7 +159,7 @@ if ($statuses_rs && $statuses_rs->num_rows > 0) {
                       </td>
                       <td class="text-end">
                         <button class="btn btn-sm btn-outline-primary rounded-3 px-3" onclick="openEditUserModal(<?= htmlspecialchars($jsUserPayload, ENT_QUOTES) ?>)">
-                          <i class="bi bi-pencil me-1"></i> Edit Role &amp; Status
+                          <i class="bi bi-pencil me-1"></i> Edit
                         </button>
                       </td>
                     </tr>
