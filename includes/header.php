@@ -37,6 +37,7 @@ if (!isset($currentPage)) {
   <title><?php echo htmlspecialchars($pageTitle); ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -56,6 +57,10 @@ if (!isset($currentPage)) {
         </a>
         <nav class="sidebar-nav">
           <a href="dashboard.php" class="sidebar-link <?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>"><i class="bi bi-grid-fill"></i> Dashboard</a>
+          
+         <?php if ($currentUserRole !== 3): ?>
+          <a href="map.php" class="sidebar-link <?php echo ($currentPage == 'map') ? 'active' : ''; ?>"><i class="bi bi-map"></i> Campus Map</a>
+           <?php endif; ?>
           <?php if ($currentUserRole !== 3): ?>
             <a href="timetable.php" class="sidebar-link <?php echo ($currentPage == 'timetable') ? 'active' : ''; ?>"><i class="bi bi-calendar3"></i> Timetable</a>
           <?php endif; ?>
@@ -69,7 +74,7 @@ if (!isset($currentPage)) {
           <a href="events.php" class="sidebar-link <?php echo ($currentPage == 'events') ? 'active' : ''; ?>"><i class="bi bi-calendar-event"></i> Events</a>
           <a href="contacts.php" class="sidebar-link <?php echo ($currentPage == 'contacts') ? 'active' : ''; ?>"><i class="bi bi-shield-exclamation"></i> Safety &amp; Contacts</a>
           <?php if ($currentUserRole === 3): ?>
-            <a href="staff-approvals.php" class="sidebar-link <?php echo ($currentPage == 'staff-approvals') ? 'active' : ''; ?>"><i class="bi bi-person-badge"></i> Staff Approvals</a>
+            <a href="staff-approvals.php" class="sidebar-link <?php echo ($currentPage == 'staff-approvals') ? 'active' : ''; ?>"><i class="bi bi-person-badge"></i> Booking Approvals</a>
             <a href="users-list.php" class="sidebar-link <?php echo ($currentPage == 'users-list') ? 'active' : ''; ?>"><i class="bi bi-people-fill"></i> User Directory</a>
           <?php endif; ?>
         </nav>

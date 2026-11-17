@@ -16,7 +16,7 @@ require_once "includes/header.php";
             <h1 class="fw-bold fs-3 mb-1">Report Service Issue</h1>
             <p class="text-secondary small mb-0">Submit campus facility, IT, or maintenance requests for rapid response.</p>
           </div>
-          <span class="su-badge su-badge-purple">● Avg. triage time: 14 mins</span>
+
         </div>
 
         <form id="reportIssueForm" onsubmit="event.preventDefault(); submitServiceRequest();" class="bg-white border rounded-4 p-4 shadow-sm max-w-900 mx-auto">
