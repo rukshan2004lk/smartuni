@@ -68,7 +68,7 @@ $isRemembered = !empty($rememberedEmail);
               <div class="su-form-group">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                   <span class="su-label mb-0">PASSWORD</span>
-                  <a href="#" class="su-forgot-link">Forgot password?</a>
+                  <!-- <a href="#" class="su-forgot-link">Forgot password?</a> -->
                 </div>
                 <div class="su-password-wrapper">
                   <input type="password" class="form-control su-input w-100 pe-5" id="passwordInput" placeholder="••••••••••••" value="<?= htmlspecialchars($rememberedPassword) ?>" required />
