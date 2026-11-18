@@ -551,6 +551,78 @@ function addFacility() {
   request.send(form);
 }
 
+function updateFacility() {
+  const id             = document.getElementById("editFacId").value.trim();
+  const name           = document.getElementById("editFacName").value.trim();
+  const category       = document.getElementById("editFacCategory").value;
+  const capacity       = document.getElementById("editFacCapacity").value.trim();
+  const locationName   = document.getElementById("editFacLocation").value.trim();
+  const startTime      = document.getElementById("editFacStartTime") ? document.getElementById("editFacStartTime").value.trim() : "08:00";
+  const endTime        = document.getElementById("editFacEndTime") ? document.getElementById("editFacEndTime").value.trim() : "22:00";
+  const imageInput     = document.getElementById("editFacImage");
+  const description    = document.getElementById("editFacDescription") ? document.getElementById("editFacDescription").value.trim() : "";
+  const equipment      = document.getElementById("editFacEquipment") ? document.getElementById("editFacEquipment").value.trim() : "";
+
+  if (id === "") {
+    Swal.fire({ icon: "error", title: "Error", text: "Facility ID is missing.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+  if (name === "") {
+    Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Facility Name.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+  if (category === "") {
+    Swal.fire({ icon: "warning", title: "Validation Error", text: "Please select a Category.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+  if (capacity === "" || parseInt(capacity, 10) <= 0) {
+    Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter a valid Capacity.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+  if (locationName === "") {
+    Swal.fire({ icon: "warning", title: "Validation Error", text: "Please enter the Location.", confirmButtonColor: "#4f46e5" });
+    return;
+  }
+
+  const form = new FormData();
+  form.append("id", id);
+  form.append("name", name);
+  form.append("category", category);
+  form.append("capacity", capacity);
+  form.append("location", locationName);
+  form.append("start_time", startTime);
+  form.append("end_time", endTime);
+  if (imageInput && imageInput.files.length > 0) {
+    form.append("image", imageInput.files[0]);
+  }
+  form.append("description", description);
+  form.append("equipment", equipment);
+
+  const request = new XMLHttpRequest();
+  request.onreadystatechange = function () {
+    if (request.readyState === 4 && request.status === 200) {
+      const response = request.responseText.trim();
+      if (response === "success") {
+        Swal.fire({
+          icon: "success",
+          title: "Facility Updated!",
+          text: "Facility details updated successfully!",
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          location.reload();
+        });
+      } else {
+        Swal.fire({ icon: "error", title: "Error", text: response, confirmButtonColor: "#4f46e5" });
+      }
+    }
+  };
+  
+  // Make sure this URL matches your actual update PHP script location
+  request.open("POST", "api/updateFacilityProcess.php", true);
+  request.send(form);
+}
+
 /* ==========================================
    BOOKING CONFIRMATION FUNCTIONS
    ========================================== */

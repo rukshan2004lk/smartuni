@@ -81,7 +81,6 @@ $categories = ['All Types', 'Study Pods', 'Computer Labs', 'Meeting Rooms', 'Lec
             <?php foreach ($facilities_list as $fac): ?>
               <?php
                 $imgUrl = !empty($fac['image']) ? $fac['image'] : 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?q=80&w=600&auto=format&fit=crop';
-            
               ?>
               <div class="col-12 col-md-6 col-lg-4">
                 <div class="facility-card h-100 d-flex flex-column justify-content-between">
@@ -104,11 +103,35 @@ $categories = ['All Types', 'Study Pods', 'Computer Labs', 'Meeting Rooms', 'Lec
                       </div>
                       <div class="d-flex justify-content-between align-items-center mt-3">
                         <span class="facility-meta text-uppercase"><?php echo htmlspecialchars($fac['location']); ?></span>
-                        <?php if ($userRole === 2): ?>
-                          <a href="facility-detail.php?id=<?php echo $fac['id']; ?>" class="btn btn-sm btn-link text-primary fw-semibold p-0">View Details &amp; Reserve &rarr;</a>
-                        <?php else: ?>
-                          <a href="facility-detail.php?id=<?php echo $fac['id']; ?>" class="btn btn-sm btn-link text-secondary fw-semibold p-0">View Details &rarr;</a>
-                        <?php endif; ?>
+                        
+                        <div>
+                          <!-- Edit Button for Admins -->
+                          <?php if ($userRole === 3): ?>
+                            <button class="btn btn-sm btn-outline-primary fw-semibold py-0 px-2 me-2" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#editFacilityModal"
+                              data-id="<?php echo $fac['id']; ?>"
+                              data-name="<?php echo htmlspecialchars($fac['name']); ?>"
+                              data-category="<?php echo htmlspecialchars($fac['category']); ?>"
+                              data-capacity="<?php echo htmlspecialchars($fac['capacity']); ?>"
+                              data-location="<?php echo htmlspecialchars($fac['location']); ?>"
+                              data-start_time="<?php echo htmlspecialchars($fac['start_time']); ?>"
+                              data-end_time="<?php echo htmlspecialchars($fac['end_time']); ?>"
+                              data-equipment="<?php echo htmlspecialchars($fac['equipment']); ?>"
+                              data-description="<?php echo htmlspecialchars($fac['description']); ?>"
+                              onclick="populateEditModal(this)">
+                              <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                          <?php endif; ?>
+
+                          <!-- View Details Button -->
+                          <?php if ($userRole === 2): ?>
+                            <a href="facility-detail.php?id=<?php echo $fac['id']; ?>" class="btn btn-sm btn-link text-primary fw-semibold p-0">View Details &amp; Reserve &rarr;</a>
+                          <?php else: ?>
+                            <a href="facility-detail.php?id=<?php echo $fac['id']; ?>" class="btn btn-sm btn-link text-secondary fw-semibold p-0">View Details &rarr;</a>
+                          <?php endif; ?>
+                        </div>
+
                       </div>
                     </div>
                   </div>
@@ -202,5 +225,102 @@ $categories = ['All Types', 'Study Pods', 'Computer Labs', 'Meeting Rooms', 'Lec
       </div>
     </div>
   </div>
+
+  <!-- EDIT FACILITY MODAL -->
+  <div class="modal fade" id="editFacilityModal" tabindex="-1" aria-labelledby="editFacilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold text-dark" id="editFacilityModalLabel">
+            <i class="bi bi-pencil-square text-primary me-2"></i>Edit Campus Facility
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editFacilityForm">
+          <div class="modal-body p-4">
+            
+            <input type="hidden" id="editFacId" />
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-7">
+                <label class="su-label">Facility Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="editFacName" required />
+              </div>
+              <div class="col-md-5">
+                <label class="su-label">Category <span class="text-danger">*</span></label>
+                <select class="form-select su-input" id="editFacCategory" required>
+                  <option value="Study Pods">Study Pods</option>
+                  <option value="Computer Labs">Computer Labs</option>
+                  <option value="Meeting Rooms">Meeting Rooms</option>
+                  <option value="Lecture Halls">Lecture Halls</option>
+                  <option value="Studios">Studios</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="su-label">Capacity <span class="text-danger">*</span></label>
+                <input type="number" class="form-control su-input" id="editFacCapacity" min="1" required />
+              </div>
+              <div class="col-md-8">
+                <label class="su-label">Location / Building &amp; Floor <span class="text-danger">*</span></label>
+                <input type="text" class="form-control su-input" id="editFacLocation" required />
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-3">
+                <label class="su-label">Opening Time <span class="text-danger">*</span></label>
+                <input type="time" class="form-control su-input" id="editFacStartTime" required />
+              </div>
+              <div class="col-md-3">
+                <label class="su-label">Closing Time <span class="text-danger">*</span></label>
+                <input type="time" class="form-control su-input" id="editFacEndTime" required />
+              </div>
+              <div class="col-md-6">
+                <label class="su-label">Update Image <small class="text-muted">(Leave empty to keep current)</small></label>
+                <input type="file" class="form-control su-input" id="editFacImage" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="su-label">Equipment &amp; Amenities</label>
+              <input type="text" class="form-control su-input" id="editFacEquipment" />
+            </div>
+
+            <div class="mb-3">
+              <label class="su-label">Description</label>
+              <textarea class="form-control su-input" id="editFacDescription" rows="3"></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer border-top p-3">
+            <button type="button" class="btn btn-su-outline" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" onclick="updateFacility();" class="btn btn-primary px-4">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript to populate the edit modal -->
+  <script>
+    function populateEditModal(button) {
+      document.getElementById('editFacId').value = button.getAttribute('data-id');
+      document.getElementById('editFacName').value = button.getAttribute('data-name');
+      document.getElementById('editFacCategory').value = button.getAttribute('data-category');
+      document.getElementById('editFacCapacity').value = button.getAttribute('data-capacity');
+      document.getElementById('editFacLocation').value = button.getAttribute('data-location');
+      document.getElementById('editFacStartTime').value = button.getAttribute('data-start_time');
+      document.getElementById('editFacEndTime').value = button.getAttribute('data-end_time');
+      document.getElementById('editFacEquipment').value = button.getAttribute('data-equipment');
+      document.getElementById('editFacDescription').value = button.getAttribute('data-description');
+      
+      // Clear the file input in case they opened it previously
+      document.getElementById('editFacImage').value = ""; 
+    }
+  </script>
 
 <?php require_once "includes/footer.php"; ?>
